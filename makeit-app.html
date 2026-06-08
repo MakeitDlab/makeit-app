@@ -543,6 +543,11 @@ function nav(id) {
       try { updateInstr(); } catch(e) {}
       try { updateScanLine(); } catch(e) {}
       try { updateBadge(); } catch(e) {}
+      // Attiva STT per comandi vocali nella schermata acquisizioni
+      if (!sttActive && sttRec) {
+        sttActive = true;
+        try { sttRec.start(); } catch(e) {}
+      }
     }, 80);
   }
 }
@@ -722,7 +727,13 @@ function handleSTT(t) {
   if(t.indexOf('makeit stop')>-1){if(isRec){stopRec();showToast('Fermata');}return;}
   if(t.indexOf('makeit conferma')>-1){confirmRec();return;}
   if(!isRec){
-    var tNorm=t.replace(/\buno\b/g,'1').replace(/\bdue\b/g,'2').replace(/\btre\b/g,'3').replace(/\bquattro\b/g,'4').replace(/\bcinque\b/g,'5').replace(/\bvirgola cinque\b/g,'.5').replace(/\bpunto cinque\b/g,'.5');
+    var tNorm=t
+      .replace(/\ba\s+uno\b/gi,'A1').replace(/\ba\s+due\b/gi,'A2')
+      .replace(/\ba\s+tre\s+e\s+mezzo\b/gi,'A3.5').replace(/\ba\s+tre\s+virgola\s+cinque\b/gi,'A3.5')
+      .replace(/\ba\s+tre\b/gi,'A3').replace(/\ba\s+quattro\b/gi,'A4')
+      .replace(/\buno\b/g,'1').replace(/\bdue\b/g,'2').replace(/\btre\b/g,'3')
+      .replace(/\bquattro\b/g,'4').replace(/\bcinque\b/g,'5')
+      .replace(/\bvirgola cinque\b/g,'.5').replace(/\bpunto cinque\b/g,'.5');
     var pM=t.match(/paziente\s+([a-z\s]+?)(?:\s*,|\s*medico|\s*consegna|$)/);if(pM){var ep=document.getElementById('f-paz');if(ep){ep.value=cap(pM[1].trim());showToast('Paziente: '+cap(pM[1].trim()));}}
     var mM=t.match(/(?:medico|dottore|dottor)\s+([a-z\s]+?)(?:\s*,|\s*consegna|\s*paziente|$)/);if(mM){var em=document.getElementById('f-med');if(em){em.value=cap(mM[1].trim());showToast('Medico: '+cap(mM[1].trim()));}}
     var dateM=t.match(/consegna\s+(\d{1,2})\s+(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)(?:\s+(\d{4}))?/);
