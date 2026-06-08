@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d0f14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MakeitDigital">
+<title>MakeitDigital — Dental Service</title>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; }
+body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; background: #0d0f14; color: #e8eaf0; }
+#app { position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; }
+#sa  { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding-bottom: 80px; }
+.screen { display: none; flex-direction: column; padding-bottom: 20px; }
+.screen.active { display: flex; }
+.hdr { padding: 14px 18px 10px; display: flex; align-items: center; gap: 12px; background: #0d0f14; position: sticky; top: 0; z-index: 10; }
+.logo { width: 38px; height: 38px; border: 1.5px solid #C9A84C; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #C9A84C; letter-spacing: 0.3px; flex-shrink: 0; font-family: 'Courier New', monospace; }
+.hdr-main { font-size: 17px; font-weight: 800; }
+.hdr-sub  { font-size: 9px; color: #C9A84C; letter-spacing: 2.5px; text-transform: uppercase; }
+.back-btn { background: none; border: none; color: #C9A84C; font-size: 15px; font-weight: 600; cursor: pointer; padding: 8px 0; display: flex; align-items: center; gap: 5px; }
+.back-btn::before { content: '\2190'; font-size: 18px; }
+.hdr-brand-right { margin-left: auto; text-align: right; }
+.step-bar { display: flex; gap: 5px; padding: 0 18px 12px; }
+.sd { height: 3px; border-radius: 2px; flex: 1; background: rgba(255,255,255,0.1); }
+.sd.done { background: #C9A84C; }
+.sd.cur  { background: rgba(201,168,76,0.45); }
+.home-top { padding: 6px 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.home-g { font-size: 12px; color: rgba(216,221,227,0.5); margin-bottom: 3px; }
+.home-d { font-size: 21px; font-weight: 700; }
+.sec-lbl { padding: 20px 18px 8px; font-size: 10px; font-weight: 700; color: rgba(216,221,227,0.5); letter-spacing: 2px; text-transform: uppercase; }
+.case-list { padding: 0 18px; display: flex; flex-direction: column; gap: 9px; }
+.case-card { background: #13161e; border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 13px; }
+.case-dot  { width: 8px; height: 8px; border-radius: 50%; background: #52c47a; flex-shrink: 0; }
+.case-name { font-size: 15px; font-weight: 600; }
+.case-meta { font-size: 11px; color: rgba(232,234,240,0.45); margin-top: 2px; font-family: 'Courier New', monospace; }
+.case-arr  { color: rgba(216,221,227,0.2); font-size: 19px; margin-left: auto; }
+.empty-state { padding: 44px 18px; text-align: center; color: rgba(232,234,240,0.45); font-size: 14px; line-height: 1.7; }
+.empty-icon { font-size: 38px; margin-bottom: 10px; opacity: 0.35; }
+.btn-gold { width: 100%; padding: 18px; background: #C9A84C; color: #0d0f14; border: none; border-radius: 14px; font-size: 17px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: -apple-system, sans-serif; }
+.btn-gold:active { opacity: 0.88; transform: scale(0.98); }
+.btn-gold:disabled { opacity: 0.38; pointer-events: none; }
+.btn-wa    { width: 100%; padding: 17px; background: #25D366; color: #fff; border: none; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: -apple-system, sans-serif; }
+.btn-drive { width: 100%; padding: 17px; background: #13161e; border: 1px solid rgba(201,168,76,0.3); color: #C9A84C; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: -apple-system, sans-serif; }
+.fb { padding: 14px 18px; display: flex; flex-direction: column; gap: 14px; }
+.ftitle { font-size: 18px; font-weight: 700; }
+.fsub   { font-size: 13px; color: rgba(232,234,240,0.45); }
+.flbl   { font-size: 10px; font-weight: 700; color: #C9A84C; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 5px; }
+.fg     { display: flex; flex-direction: column; }
+.fi, .fsel, .fta { background: #13161e; border: 1px solid rgba(255,255,255,0.1); border-radius: 9px; color: #e8eaf0; font-size: 16px; padding: 13px 15px; outline: none; width: 100%; -webkit-appearance: none; font-family: -apple-system, sans-serif; }
+.fi:focus, .fsel:focus, .fta:focus { border-color: rgba(201,168,76,0.4); background: #1a1e28; }
+.fsel { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A84C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; background-color: #13161e; }
+.fsel option { background: #1a1e28; }
+.fta  { resize: none; min-height: 76px; line-height: 1.5; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+.teeth-card { background: #13161e; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; overflow: hidden; }
+.teeth-hdr  { padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); cursor: pointer; }
+.teeth-hdr-l { display: flex; align-items: center; gap: 10px; }
+.teeth-hdr-t { font-size: 14px; font-weight: 700; }
+.teeth-hdr-s { font-size: 11px; color: rgba(232,234,240,0.45); margin-top: 1px; }
+.teeth-tog   { color: #C9A84C; font-size: 18px; transition: transform 0.2s; }
+.teeth-tog.open { transform: rotate(180deg); }
+.teeth-body  { padding: 14px 16px; display: flex; flex-direction: column; gap: 14px; }
+.fdi-arch-lbl { font-size: 9px; color: rgba(232,234,240,0.45); text-align: center; letter-spacing: 1px; text-transform: uppercase; padding: 2px 0; }
+.fdi-grid    { display: grid; grid-template-columns: repeat(8,1fr); gap: 4px; }
+.fdi-sep     { height: 1px; background: rgba(255,255,255,0.06); margin: 2px 0; }
+.fdi-tooth   { aspect-ratio: 1; border-radius: 6px; border: 1.5px solid rgba(255,255,255,0.1); background: #1a1e28; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-family: 'Courier New', monospace; font-weight: 500; color: rgba(232,234,240,0.45); cursor: pointer; }
+.fdi-tooth .t-num { font-size: 9px; font-weight: 700; line-height: 1; }
+.fdi-tooth .t-dot { width: 4px; height: 4px; border-radius: 50%; background: #C9A84C; display: none; margin-top: 2px; }
+.fdi-tooth.selected { border-color: #C9A84C; background: rgba(201,168,76,0.13); color: #C9A84C; }
+.fdi-tooth.selected .t-dot { display: block; }
+.fdi-tooth.has-work { border-color: rgba(82,196,122,0.5); background: rgba(82,196,122,0.08); color: #52c47a; }
+.fdi-tooth.has-work .t-dot { display: block; background: #52c47a; }
+.sel-tooth-list { display: flex; flex-direction: column; gap: 8px; }
+.sel-tooth-row  { background: #1a1e28; border: 1px solid rgba(255,255,255,0.08); border-radius: 9px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+.sel-tooth-num  { font-family: 'Courier New', monospace; font-size: 15px; font-weight: 700; color: #C9A84C; min-width: 28px; text-align: center; }
+.sel-tooth-sel  { flex: 1; background: #13161e; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #e8eaf0; font-size: 14px; padding: 8px 30px 8px 10px; outline: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23C9A84C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+.sel-tooth-sel option { background: #1a1e28; }
+.sel-tooth-del  { background: none; border: none; color: #e05252; font-size: 20px; cursor: pointer; padding: 4px 8px; flex-shrink: 0; }
+.bridge-hint    { font-size: 12px; color: #C9A84C; background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.28); border-radius: 8px; padding: 9px 12px; cursor: pointer; text-align: center; }
+.teeth-note-ta  { background: #1a1e28; border: 1px solid rgba(255,255,255,0.08); border-radius: 9px; color: #e8eaf0; font-size: 14px; padding: 11px 13px; outline: none; width: 100%; resize: none; min-height: 60px; line-height: 1.5; font-family: -apple-system, sans-serif; }
+.vita-wrap   { background: #13161e; border: 1px solid rgba(255,255,255,0.1); border-radius: 9px; overflow: hidden; }
+.vg-row      { display: flex; border-bottom: 1px solid rgba(255,255,255,0.07); overflow-x: auto; }
+.vg-tab      { flex-shrink: 0; padding: 9px 14px; font-size: 12px; font-weight: 700; cursor: pointer; border-bottom: 2px solid transparent; color: rgba(232,234,240,0.45); white-space: nowrap; font-family: 'Courier New', monospace; }
+.vg-tab.active { color: #C9A84C; border-bottom-color: #C9A84C; }
+.vc-row      { display: flex; flex-wrap: wrap; gap: 7px; padding: 12px; }
+.vc          { border-radius: 8px; padding: 8px 10px; cursor: pointer; border: 2px solid transparent; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 52px; }
+.vc .vcode   { font-size: 11px; font-weight: 700; font-family: 'Courier New', monospace; }
+.vc .vname   { font-size: 9px; opacity: 0.65; }
+.vc.sel      { border-color: #C9A84C; box-shadow: 0 0 0 2px rgba(201,168,76,0.35); }
+.vita-sel-bar { padding: 10px 12px; display: flex; align-items: center; gap: 10px; background: #1a1e28; border-top: 1px solid rgba(255,255,255,0.06); min-height: 46px; }
+.vswatch     { width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
+.vsel-t      { font-size: 14px; font-weight: 700; }
+.vsel-s      { font-size: 11px; color: rgba(232,234,240,0.45); }
+.upload-zone { background: #13161e; border: 1.5px dashed rgba(255,255,255,0.15); border-radius: 14px; padding: 16px; text-align: center; cursor: pointer; }
+.upload-zone.has { border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.08); }
+.unames      { font-size: 11px; color: #52c47a; font-family: 'Courier New', monospace; margin-top: 5px; word-break: break-all; }
+input[type=file].hidden { display: none; }
+.stt-pill  { display: inline-flex; align-items: center; gap: 6px; background: rgba(82,196,122,0.1); border: 1px solid rgba(82,196,122,0.22); border-radius: 20px; padding: 5px 12px; font-size: 11px; color: #52c47a; cursor: pointer; }
+.stt-pill.lst { background: rgba(224,82,82,0.1); border-color: rgba(224,82,82,0.28); color: #e05252; }
+.stt-dot   { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.tr-live   { background: #1a1e28; border: 1px solid rgba(255,255,255,0.07); border-radius: 9px; padding: 10px 14px; font-size: 13px; color: rgba(216,221,227,0.5); min-height: 38px; font-style: italic; line-height: 1.5; width: 100%; word-break: break-word; }
+.acq-wrap { padding: 10px 18px; display: flex; flex-direction: column; gap: 14px; }
+.acq-card { background: #13161e; border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; overflow: hidden; }
+.acq-hdr  { padding: 14px 16px; display: flex; align-items: center; gap: 11px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.acq-icon { font-size: 20px; }
+.acq-t    { font-size: 14px; font-weight: 700; }
+.acq-s    { font-size: 11px; color: rgba(232,234,240,0.45); margin-top: 1px; }
+.abadge   { margin-left: auto; background: rgba(201,168,76,0.13); border: 1px solid rgba(201,168,76,0.28); color: #C9A84C; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; font-family: 'Courier New', monospace; white-space: nowrap; flex-shrink: 0; }
+.abadge.ok  { background: rgba(82,196,122,0.12); border-color: rgba(82,196,122,0.28); color: #52c47a; }
+.abadge.opt { background: rgba(144,144,144,0.1); border-color: rgba(144,144,144,0.2); color: rgba(216,221,227,0.5); }
+.voice-area { padding: 22px 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.mic-cmds   { background: #1a1e28; border-radius: 9px; padding: 10px 14px; width: 100%; font-size: 12px; color: rgba(232,234,240,0.45); line-height: 1.9; }
+.mic-cmds b { color: #C9A84C; font-family: 'Courier New', monospace; }
+.mic-timer  { font-family: 'Courier New', monospace; font-size: 26px; color: #e05252; min-height: 34px; }
+.mic-ring   { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid rgba(201,168,76,0.28); background: #1a1e28; }
+.mic-ring.rec  { border-color: #e05252; background: rgba(224,82,82,0.1); }
+.mic-ring.pau  { border-color: #C9A84C; background: rgba(201,168,76,0.13); }
+.mic-ring.done { border-color: rgba(82,196,122,0.5); background: rgba(82,196,122,0.1); }
+.mic-emoji  { font-size: 48px; pointer-events: none; }
+.mic-lbl    { font-size: 14px; color: rgba(232,234,240,0.45); text-align: center; line-height: 1.5; }
+.audio-btns { display: flex; gap: 9px; width: 100%; }
+.abtn       { flex: 1; padding: 11px; background: #1a1e28; border: 1px solid rgba(255,255,255,0.1); border-radius: 9px; color: rgba(216,221,227,0.5); font-size: 13px; font-weight: 600; cursor: pointer; font-family: -apple-system, sans-serif; }
+.abtn.pri   { background: rgba(201,168,76,0.13); border-color: rgba(201,168,76,0.28); color: #C9A84C; }
+.set-tabs { display: flex; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.st       { flex-shrink: 0; padding: 11px 14px; font-size: 12px; font-weight: 700; cursor: pointer; border-bottom: 2px solid transparent; color: rgba(232,234,240,0.45); white-space: nowrap; display: flex; align-items: center; gap: 5px; }
+.st.active { color: #C9A84C; border-bottom-color: #C9A84C; }
+.req-dot   { width: 6px; height: 6px; border-radius: 50%; background: #e05252; flex-shrink: 0; }
+.opt-dot   { width: 6px; height: 6px; border-radius: 50%; background: rgba(144,144,144,0.4); flex-shrink: 0; }
+.ph-prog-bar  { height: 4px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden; margin: 14px 16px 0; }
+.ph-prog-fill { height: 100%; background: #C9A84C; border-radius: 2px; }
+.sec-wiz  { margin: 14px 16px; }
+.lvl-ind  { display: flex; gap: 6px; margin-bottom: 12px; }
+.lvl-block { flex: 1; border-radius: 8px; padding: 10px 8px; text-align: center; border: 2px solid rgba(255,255,255,0.08); cursor: pointer; }
+.lvl-block.active { border-color: #C9A84C; background: rgba(201,168,76,0.13); }
+.lvl-block.dnlv   { border-color: rgba(82,196,122,0.4); background: rgba(82,196,122,0.07); }
+.lvl-block.dnlv .lb-name { color: #52c47a; }
+.lb-icon  { font-size: 18px; margin-bottom: 3px; }
+.lb-name  { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; }
+.lb-count { font-size: 9px; color: rgba(232,234,240,0.45); margin-top: 2px; font-family: 'Courier New', monospace; }
+.snake-box { background: rgba(201,168,76,0.07); border: 1px solid rgba(201,168,76,0.28); border-radius: 9px; padding: 10px 13px; font-size: 12px; color: rgba(216,221,227,0.5); line-height: 1.8; }
+.snake-box strong { color: #C9A84C; }
+.instr-card { background: #1a1e28; border-radius: 9px; overflow: hidden; margin-bottom: 12px; border-left: 3px solid #C9A84C; }
+.instr-top  { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.instr-badge { font-size: 10px; color: #C9A84C; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
+.instr-txt  { font-size: 14px; font-weight: 600; line-height: 1.4; }
+.instr-hint { font-size: 12px; color: rgba(232,234,240,0.45); margin-top: 3px; }
+.dummy-guide { padding: 10px 14px; font-size: 11px; color: rgba(216,221,227,0.5); line-height: 1.8; background: rgba(0,0,0,0.2); white-space: pre-line; }
+.ph-thumbs  { display: flex; gap: 5px; padding: 0 16px 12px; overflow-x: auto; }
+.pt         { width: 52px; height: 52px; flex-shrink: 0; border-radius: 7px; border: 2px solid rgba(255,255,255,0.08); background: #1a1e28; display: flex; align-items: center; justify-content: center; font-size: 10px; color: rgba(232,234,240,0.45); cursor: pointer; position: relative; overflow: hidden; }
+.pt.cur     { border-color: #C9A84C; background: rgba(201,168,76,0.13); }
+.pt.ok      { border-color: rgba(82,196,122,0.45); }
+.pt img     { width: 100%; height: 100%; object-fit: cover; }
+.pt .pnum   { position: absolute; bottom: 1px; right: 2px; font-size: 8px; font-family: 'Courier New', monospace; color: #C9A84C; opacity: 0.8; }
+.cam-btn    { width: calc(100% - 32px); margin: 0 16px 14px; padding: 17px; background: #C9A84C; color: #0d0f14; border: none; border-radius: 9px; font-size: 17px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 9px; font-family: -apple-system, sans-serif; }
+.cam-btn:active { opacity: 0.88; }
+.cam-btn:disabled { opacity: 0.38; pointer-events: none; }
+.opt-overlay { padding: 16px 16px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; color: rgba(232,234,240,0.45); font-size: 13px; line-height: 1.6; }
+.opt-unlock  { display: inline-block; padding: 10px 24px; background: rgba(201,168,76,0.13); border: 1px solid rgba(201,168,76,0.28); border-radius: 20px; color: #C9A84C; font-size: 13px; font-weight: 700; cursor: pointer; }
+#cam-overlay { position: fixed; inset: 0; background: #000; z-index: 9000; display: none; flex-direction: column; }
+#cam-overlay.open { display: flex; }
+#cam-video   { width: 100%; flex: 1; object-fit: cover; }
+.cam-ui      { position: absolute; inset: 0; pointer-events: none; }
+.cam-frame   { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-58%); width: 72%; height: 68%; border: 2px solid rgba(201,168,76,0.75); border-radius: 50% 50% 45% 45% / 40% 40% 35% 35%; box-shadow: 0 0 0 9999px rgba(0,0,0,0.48); }
+.cc-tl, .cc-tr, .cc-bl, .cc-br { position: absolute; width: 22px; height: 22px; border-color: #C9A84C; border-style: solid; }
+.cc-tl { top:-1px; left:-1px; border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
+.cc-tr { top:-1px; right:-1px; border-width:3px 3px 0 0; border-radius:0 4px 0 0; }
+.cc-bl { bottom:-1px; left:-1px; border-width:0 0 3px 3px; border-radius:0 0 0 4px; }
+.cc-br { bottom:-1px; right:-1px; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
+.cam-lvl-line { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 60%; display: flex; align-items: center; gap: 4px; }
+.cam-lvl-l    { flex: 1; height: 1px; background: rgba(255,255,255,0.2); }
+.cam-lvl-c    { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid #C9A84C; background: transparent; flex-shrink: 0; }
+.cam-lvl-i    { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 20px; height: 3px; background: #C9A84C; border-radius: 2px; }
+.cam-scan-line { position: absolute; left: 14%; right: 14%; height: 2px; background: rgba(201,168,76,0.4); pointer-events: none; }
+.cam-top      { position: absolute; top: 0; left: 0; right: 0; background: linear-gradient(to bottom,rgba(0,0,0,0.85),transparent); padding: 16px 16px 36px; pointer-events: none; }
+.co-step      { font-size: 10px; color: #C9A84C; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
+.co-txt       { font-size: 15px; font-weight: 700; color: #fff; }
+.co-hint      { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+.cam-zoom-b   { position: absolute; top: 16px; right: 16px; background: rgba(201,168,76,0.18); border: 1px solid rgba(201,168,76,0.28); color: #C9A84C; font-family: 'Courier New', monospace; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 14px; pointer-events: none; }
+.cam-lvl-badge { position: absolute; left: 16px; bottom: 28%; background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 5px 10px; pointer-events: none; }
+.clb-lbl      { font-size: 9px; color: rgba(232,234,240,0.45); letter-spacing: 0.8px; text-transform: uppercase; }
+.clb-val      { font-size: 12px; font-weight: 700; margin-top: 1px; }
+.cam-bottom   { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top,rgba(0,0,0,0.9),transparent); padding: 20px 20px 44px; display: flex; align-items: center; justify-content: center; gap: 24px; pointer-events: all; }
+.cam-cancel   { background: rgba(255,255,255,0.12); border: none; color: #fff; font-size: 14px; font-weight: 600; padding: 13px 22px; border-radius: 28px; cursor: pointer; font-family: -apple-system, sans-serif; }
+.cam-shutter  { width: 74px; height: 74px; border-radius: 50%; background: #fff; border: 4px solid rgba(255,255,255,0.45); cursor: pointer; flex-shrink: 0; }
+.cam-shutter:active { transform: scale(0.88); }
+.cam-flip     { background: rgba(255,255,255,0.12); border: none; color: #fff; font-size: 24px; padding: 13px 18px; border-radius: 28px; cursor: pointer; }
+canvas#cc     { display: none; }
+.rb  { padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; }
+.rc  { background: #13161e; border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 14px 16px; }
+.rl  { font-size: 10px; color: #C9A84C; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 9px; }
+.rr  { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.rr:last-child { border-bottom: none; }
+.rk  { font-size: 13px; color: rgba(232,234,240,0.45); }
+.rv  { font-size: 13px; font-weight: 600; text-align: right; max-width: 60%; }
+.rok { color: #52c47a; }
+.rmiss { color: rgba(232,234,240,0.45); font-style: italic; }
+.sw  { padding: 0 18px; display: flex; flex-direction: column; gap: 9px; margin-bottom: 8px; }
+.send-note { padding: 0 18px 16px; font-size: 11px; color: rgba(232,234,240,0.45); text-align: center; line-height: 1.6; }
+#sc-suc { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 100%; padding: 40px 20px; text-align: center; }
+#sc-suc.active { display: flex; }
+.suc-icon  { font-size: 68px; margin-bottom: 18px; }
+.suc-title { font-size: 26px; font-weight: 800; margin-bottom: 7px; }
+.suc-sub   { font-size: 15px; color: rgba(232,234,240,0.45); line-height: 1.7; margin-bottom: 36px; }
+.bnav { position: fixed; bottom: 0; left: 0; right: 0; background: #0d0f14; border-top: 1px solid rgba(255,255,255,0.08); display: flex; z-index: 200; padding-bottom: env(safe-area-inset-bottom,0px); }
+.ni   { flex: 1; padding: 10px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; border: none; background: none; color: rgba(232,234,240,0.45); font-family: -apple-system, sans-serif; }
+.ni.active { color: #C9A84C; }
+.nicon { font-size: 20px; }
+.nlbl  { font-size: 9px; font-weight: 700; letter-spacing: 0.5px; }
+.toast { position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%) translateY(18px); background: #1a1e28; border: 1px solid rgba(201,168,76,0.28); color: #C9A84C; padding: 9px 20px; border-radius: 28px; font-size: 13px; font-weight: 600; opacity: 0; pointer-events: none; white-space: nowrap; z-index: 9999; max-width: 90vw; text-align: center; transition: opacity 0.25s, transform 0.25s; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.firebase-badge { position: fixed; top: 8px; right: 8px; background: rgba(82,196,122,0.15); border: 1px solid rgba(82,196,122,0.3); color: #52c47a; font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 10px; z-index: 9998; display: none; }
+.firebase-badge.show { display: block; }
+</style>
+</head>
+<body>
+<div class="firebase-badge" id="fb-badge">&#9679; Firebase</div>
+<div id="app">
+ <div id="sa">
+  <div id="sc-home" class="screen active">
+   <div class="hdr"><div class="logo">MK</div><div><div class="hdr-main">MakeitDigital</div><div class="hdr-sub">Dental Service</div></div></div>
+   <div class="home-top"><div class="home-g">Portale Clinico &mdash;</div><div class="home-d" id="home-date"></div></div>
+   <div style="padding:20px 18px 0"><button class="btn-gold" onclick="startNew()"><span style="font-size:22px">+</span> Nuovo Caso</button></div>
+   <div class="sec-lbl">Casi Recenti</div>
+   <div class="case-list" id="case-list"></div>
+  </div>
+
+  <div id="sc-form" class="screen">
+   <div class="hdr"><button class="back-btn" onclick="nav('sc-home')">Home</button><div class="hdr-brand-right"><div class="hdr-main" style="font-size:14px">MakeitDigital</div><div class="hdr-sub">Dental Service</div></div></div>
+   <div class="step-bar"><div class="sd done"></div><div class="sd cur"></div><div class="sd"></div><div class="sd"></div></div>
+   <div class="fb">
+    <div class="ftitle">Dati del Caso</div>
+    <div class="fsub">Di' <strong style="color:#C9A84C">"Makeit registra"</strong> per compilare a voce, o scrivi.</div>
+    <div class="stt-pill" id="stt-pill" onclick="toggleSTT()"><div class="stt-dot"></div><span id="stt-lbl">Tocca per attivare ascolto vocale</span></div>
+    <div class="tr-live" id="tr-live" style="display:none"></div>
+    <div class="fg"><div class="flbl">Nome Paziente *</div><input class="fi" id="f-paz" type="text" placeholder="Es. Mario Rossi" autocomplete="off"></div>
+    <div class="row2">
+     <div class="fg"><div class="flbl">Medico</div><input class="fi" id="f-med" type="text" placeholder="Dr. ..." autocomplete="off"></div>
+     <div class="fg"><div class="flbl">Data consegna</div><input class="fi" id="f-dat" type="date"></div>
+    </div>
+    <div class="fg"><div class="flbl">Tipo lavoro</div>
+     <select class="fsel" id="f-tip">
+      <option value="">-- Seleziona --</option>
+      <option>Corona singola</option><option>Bridge</option><option>Scheletrato</option>
+      <option>Protesi parziale</option><option>Protesi totale</option><option>Impianto</option>
+      <option>Splint / Proface</option><option>Protocollo SDiMatrix completo</option><option>Altro</option>
+     </select>
+    </div>
+    <div class="teeth-card">
+     <div class="teeth-hdr" onclick="toggleTeeth()">
+      <div class="teeth-hdr-l"><span style="font-size:18px">&#129463;</span><div><div class="teeth-hdr-t">Scheda Tecnica Denti</div><div class="teeth-hdr-s">Schema FDI &mdash; tocca i denti per selezionarli</div></div></div>
+      <span class="teeth-tog" id="teeth-tog">&#9660;</span>
+     </div>
+     <div class="teeth-body" id="teeth-body" style="display:none">
+      <div>
+       <div class="fdi-arch-lbl">Arcata superiore</div>
+       <div class="fdi-grid" id="fdi-upper"></div>
+       <div class="fdi-sep"></div>
+       <div class="fdi-grid" id="fdi-lower"></div>
+       <div class="fdi-arch-lbl">Arcata inferiore</div>
+      </div>
+      <div class="sel-tooth-list" id="sel-tooth-list"></div>
+      <div class="fg"><div class="flbl">Note scheda tecnica</div><textarea class="teeth-note-ta" id="teeth-note" placeholder="Es. Ponte 33-43, urgenze..."></textarea></div>
+     </div>
+    </div>
+    <div class="row2">
+     <div class="fg"><div class="flbl">Arcata</div><select class="fsel" id="f-arc"><option value="">--</option><option>Superiore</option><option>Inferiore</option><option>Entrambe</option></select></div>
+     <div class="fg"><div class="flbl">Materiale</div><select class="fsel" id="f-mat"><option value="">--</option><option>Zirconio</option><option>E.max</option><option>Composito</option><option>Metallo-ceramica</option><option>PMMA</option><option>Da definire</option></select></div>
+    </div>
+    <div class="fg"><div class="flbl">Colore VITA Pan Chromascop + Bleach</div>
+     <div class="vita-wrap">
+      <div class="vg-row" id="vg-row"></div>
+      <div class="vc-row" id="vc-row"></div>
+      <div class="vita-sel-bar"><div class="vswatch" id="vswatch" style="background:#e8e4d8"></div><div><div class="vsel-t" id="vsel-t">--</div><div class="vsel-s" id="vsel-s">Tocca uno shade</div></div></div>
+     </div>
+    </div>
+    <div class="fg"><div class="flbl">Scansioni STL</div>
+     <div class="upload-zone" id="stl-zone" onclick="document.getElementById('stl-in').click()">
+      <div style="font-size:26px;margin-bottom:5px">&#129463;</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:2px">Carica file STL</div>
+      <div style="font-size:11px;color:rgba(232,234,240,0.45)">Superiore / inferiore / occlusione</div>
+      <div class="unames" id="stl-nm"></div>
+     </div>
+     <input type="file" id="stl-in" class="hidden" accept=".stl,.obj,.ply" multiple onchange="onSTL(event)">
+    </div>
+    <div class="fg"><div class="flbl">CBCT / DICOM Link</div><input class="fi" id="f-dic" type="url" placeholder="https://drive.google.com/..."><div style="font-size:11px;color:rgba(232,234,240,0.45);margin-top:5px">Carica CBCT dal PC su Drive e incolla il link.</div></div>
+    <div class="fg"><div class="flbl">Note cliniche</div><textarea class="fta" id="f-not" placeholder="Indicazioni, urgenze, istruzioni speciali..."></textarea></div>
+    <button class="btn-gold" onclick="goAcq()">Avanti &mdash; Acquisizioni</button>
+   </div>
+  </div>
+
+  <div id="sc-acq" class="screen">
+   <div class="hdr"><button class="back-btn" onclick="nav('sc-form')">Dati</button><div class="hdr-brand-right"><div class="hdr-main" style="font-size:14px">MakeitDigital</div><div class="hdr-sub">Dental Service</div></div></div>
+   <div class="step-bar"><div class="sd done"></div><div class="sd done"></div><div class="sd cur"></div><div class="sd"></div></div>
+   <div style="padding:10px 18px 6px"><div style="font-size:18px;font-weight:700">Acquisizioni</div><div style="font-size:13px;color:rgba(232,234,240,0.45);margin-top:2px">Nota vocale + Protocollo fotografico</div></div>
+   <div class="acq-wrap">
+    <div class="acq-card">
+     <div class="acq-hdr"><span class="acq-icon">&#127897;</span><div><div class="acq-t">Nota Vocale</div><div class="acq-s">Descrizione clinica del caso</div></div><div class="abadge" id="v-badge">--</div></div>
+     <div class="voice-area">
+      <div class="mic-cmds"><b>"Makeit registra"</b> &mdash; avvia &nbsp;|&nbsp; <b>"Makeit pausa"</b> &mdash; pausa<br><b>"Makeit stop"</b> &mdash; ferma &nbsp;|&nbsp; <b>"Makeit conferma"</b> &mdash; salva</div>
+      <div class="mic-timer" id="mic-timer" style="visibility:hidden">0:00</div>
+      <div class="mic-ring" id="mic-ring" onclick="toggleRec()"><span class="mic-emoji" id="mic-emoji">&#127908;</span></div>
+      <div class="mic-lbl" id="mic-lbl">Tocca per avviare &mdash; compatibile con guanti</div>
+      <div class="audio-btns" id="audio-btns" style="display:none">
+       <button class="abtn" onclick="resetRec()">&#8635; Riregistra</button>
+       <button class="abtn pri" onclick="confirmRec()">&#10003; Conferma</button>
+      </div>
+     </div>
+    </div>
+    <div class="acq-card">
+     <div class="acq-hdr"><span class="acq-icon">&#128248;</span><div><div class="acq-t">Protocollo SDiMatrix</div><div class="acq-s">Scansione facciale con fotogrammetria</div></div><div class="abadge" id="ph-badge">0/30</div></div>
+     <div class="set-tabs">
+      <div class="st active" onclick="switchSet(0)"><div class="req-dot"></div>&#128528; Riposo</div>
+      <div class="st" onclick="switchSet(1)"><div class="opt-dot"></div>&#128512; Sorriso</div>
+      <div class="st" onclick="switchSet(2)"><div class="opt-dot"></div>&#128558; Apri bocca</div>
+     </div>
+     <div style="padding:12px 16px 0">
+      <div class="snake-box">
+       <strong>Schema a serpente &mdash; leggi prima</strong><br>
+       "Profilo" = stai di lato, vedi il viso di profilo.<br>
+       &#128316; <strong>Superiore</strong> (camera altezza <em>fronte</em>, inclinata giu): SX &rarr; DX<br>
+       &#11035; <strong>Centrale</strong> (camera altezza <em>naso</em>, frontale): DX &larr; SX inverso<br>
+       &#128317; <strong>Inferiore</strong> (camera altezza <em>mento</em>, inclinata su): SX &rarr; DX
+      </div>
+     </div>
+     <div class="ph-prog-bar"><div class="ph-prog-fill" id="ph-prog" style="width:0%"></div></div>
+     <div class="sec-wiz">
+      <div class="lvl-ind">
+       <div class="lvl-block active" id="lv0" onclick="jumpLevel(0)"><div class="lb-icon">&#128316;</div><div class="lb-name">Superiore</div><div class="lb-count" id="lc0">0/10</div></div>
+       <div class="lvl-block" id="lv1" onclick="jumpLevel(1)"><div class="lb-icon">&#11035;</div><div class="lb-name">Centrale</div><div class="lb-count" id="lc1">0/10</div></div>
+       <div class="lvl-block" id="lv2" onclick="jumpLevel(2)"><div class="lb-icon">&#128317;</div><div class="lb-name">Inferiore</div><div class="lb-count" id="lc2">0/10</div></div>
+      </div>
+      <div class="instr-card">
+       <div class="instr-top"><div class="instr-badge" id="instr-badge">SUP 1/10 &mdash; Profilo SX</div><div class="instr-txt" id="instr-txt">Parti dal profilo sinistro &mdash; altezza fronte</div><div class="instr-hint" id="instr-hint">Stai di lato sinistro: vedi il viso di profilo. Camera altezza fronte, inclinata giu.</div></div>
+       <div class="dummy-guide" id="dummy-guide">Camera altezza FRONTE, inclinata verso il basso. Profilo sinistro = viso di profilo a sinistra. Percorso: SX - DX (da sinistra a destra).</div>
+      </div>
+     </div>
+     <div class="ph-thumbs" id="ph-thumbs"></div>
+     <button class="cam-btn" id="cam-btn" onclick="openCam('main',null)">&#128247; Scatta Foto 1/30</button>
+    </div>
+    <div class="acq-card">
+     <div class="acq-hdr"><span class="acq-icon">&#128068;</span><div><div class="acq-t">Labiale Riposo</div><div class="acq-s">Facoltativo &mdash; 3 foto</div></div><div class="abadge opt" id="labR-badge">0/3 opz.</div></div>
+     <div id="labR-body"><div class="opt-overlay"><span>Riposo nelle 3 viste: frontale, 3/4 SX, 3/4 DX.</span><span class="opt-unlock" onclick="activateLab('R')">Attiva</span></div></div>
+    </div>
+    <div class="acq-card">
+     <div class="acq-hdr"><span class="acq-icon">&#128515;</span><div><div class="acq-t">Labiale Sorriso</div><div class="acq-s">Facoltativo &mdash; 3 foto</div></div><div class="abadge opt" id="labS-badge">0/3 opz.</div></div>
+     <div id="labS-body"><div class="opt-overlay"><span>Sorriso nelle 3 viste: frontale, 3/4 SX, 3/4 DX.</span><span class="opt-unlock" onclick="activateLab('S')">Attiva</span></div></div>
+    </div>
+    <div class="acq-card">
+     <div class="acq-hdr"><span class="acq-icon">&#128558;</span><div><div class="acq-t">Labiale Apri bocca</div><div class="acq-s">Facoltativo &mdash; 3 foto con apribocca ortodontico</div></div><div class="abadge opt" id="labB-badge">0/3 opz.</div></div>
+     <div id="labB-body"><div class="opt-overlay"><span>Apri bocca nelle 3 viste con apribocca ortodontico.</span><span class="opt-unlock" onclick="activateLab('B')">Attiva</span></div></div>
+    </div>
+   </div>
+   <div style="padding:0 18px 18px"><button class="btn-gold" onclick="goRecap()">Avanti &mdash; Riepilogo</button></div>
+  </div>
+
+  <div id="sc-recap" class="screen">
+   <div class="hdr"><button class="back-btn" onclick="nav('sc-acq')">Acquisizioni</button><div class="hdr-brand-right"><div class="hdr-main" style="font-size:14px">MakeitDigital</div><div class="hdr-sub">Dental Service</div></div></div>
+   <div class="step-bar"><div class="sd done"></div><div class="sd done"></div><div class="sd done"></div><div class="sd cur"></div></div>
+   <div style="padding:10px 18px 14px"><div style="font-size:18px;font-weight:700">Riepilogo</div><div style="font-size:13px;color:rgba(232,234,240,0.45);margin-top:2px">Verifica e invia al laboratorio</div></div>
+   <div class="rb" id="recap-body"></div>
+   <div class="sw">
+    <button class="btn-wa" onclick="sendToLab()">&#128172; Invia al Lab</button>
+   </div>
+   <div class="send-note" id="send-note">Il caso viene salvato su Firebase e una notifica WhatsApp viene inviata al lab.</div>
+  </div>
+
+  <div id="sc-suc">
+   <div class="suc-icon">&#9989;</div>
+   <div class="suc-title">Caso Inviato!</div>
+   <div class="suc-sub" id="suc-sub">MakeitDigital Lab ha ricevuto il caso.</div>
+   <button class="btn-gold" style="width:auto;padding:15px 44px" onclick="startNew()">Nuovo Caso</button>
+  </div>
+ </div>
+
+ <nav class="bnav" id="bnav">
+  <button class="ni active" id="ni0" onclick="nav('sc-home');setNav(0)"><span class="nicon">&#127968;</span><span class="nlbl">HOME</span></button>
+  <button class="ni" id="ni1" onclick="startNew();setNav(1)"><span class="nicon">+</span><span class="nlbl">NUOVO</span></button>
+  <button class="ni" id="ni2" onclick="goRecap();setNav(2)"><span class="nicon">&#128228;</span><span class="nlbl">INVIA</span></button>
+ </nav>
+</div>
+
+<div id="cam-overlay">
+ <video id="cam-video" autoplay playsinline muted></video>
+ <div class="cam-ui">
+  <div class="cam-top"><div class="co-step" id="co-step">SUPERIORE &mdash; FOTO 1</div><div class="co-txt" id="co-txt">Parti dal profilo sinistro</div><div class="co-hint" id="co-hint">Camera altezza fronte</div></div>
+  <div class="cam-zoom-b">2.4x</div>
+  <div class="cam-frame"><div class="cc-tl"></div><div class="cc-tr"></div><div class="cc-bl"></div><div class="cc-br"></div><div class="cam-lvl-line"><div class="cam-lvl-l"></div><div class="cam-lvl-c"></div><div class="cam-lvl-l"></div><div class="cam-lvl-i" id="lvl-cam-i"></div></div></div>
+  <div class="cam-scan-line" id="scan-line"></div>
+  <div class="cam-lvl-badge"><div class="clb-lbl">Livello</div><div class="clb-val" id="clb-val">SUPERIORE</div></div>
+ </div>
+ <div class="cam-bottom">
+  <button class="cam-cancel" onclick="closeCam()">Annulla</button>
+  <button class="cam-shutter" id="cam-sh" onclick="snapPhoto()"></button>
+  <button class="cam-flip" onclick="flipCam()">&#128260;</button>
+ </div>
+ <canvas id="cc"></canvas>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+// ── FIREBASE INIT ─────────────────────────────────────────────────────────
+var firebaseConfig = {
+  apiKey: "AIzaSyD0Fhghm_mH3-P9cY7V3HPyH14MSZtricw",
+  authDomain: "makeit-digital.firebaseapp.com",
+  projectId: "makeit-digital",
+  storageBucket: "makeit-digital.firebasestorage.app",
+  messagingSenderId: "758689562925",
+  appId: "1:758689562925:web:3302cab05098f91cf7d3a4"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+// Test connessione
+db.collection('_ping').doc('test').set({t: Date.now()}).then(function() {
+  var badge = document.getElementById('fb-badge');
+  if (badge) badge.classList.add('show');
+}).catch(function(e) { console.log('Firebase offline:', e.message); });
+
+// ── CONFIG ────────────────────────────────────────────────────────────────
+var LAB_WA = '393298211769';
+
+// ── DATI VITA ─────────────────────────────────────────────────────────────
+var VD = {
+  A:  [{code:'A1',name:'Chiarissimo',hex:'#f5efe0'},{code:'A2',name:'Chiaro',hex:'#f0e6cc'},{code:'A3',name:'Medio',hex:'#e8d4a8'},{code:'A3.5',name:'Med-sc.',hex:'#dfc895'},{code:'A4',name:'Scuro',hex:'#d4b87a'}],
+  B:  [{code:'B1',name:'Chiarissimo',hex:'#f7f0d8'},{code:'B2',name:'Chiaro',hex:'#f2e8c4'},{code:'B3',name:'Medio',hex:'#ead8a0'},{code:'B4',name:'Scuro',hex:'#dfc882'}],
+  C:  [{code:'C1',name:'Chiarissimo',hex:'#ede8de'},{code:'C2',name:'Chiaro',hex:'#e0d8c8'},{code:'C3',name:'Medio',hex:'#cfc4a8'},{code:'C4',name:'Scuro',hex:'#bfb090'}],
+  D:  [{code:'D2',name:'Chiaro',hex:'#e8dfc8'},{code:'D3',name:'Medio',hex:'#d8ccb0'},{code:'D4',name:'Scuro',hex:'#c8b898'}],
+  BL: [{code:'BL1',name:'Bianchissimo',hex:'#fafcff'},{code:'BL2',name:'Bianco nat.',hex:'#f4f7fc'},{code:'BL3',name:'Bianco ch.',hex:'#edf2f8'},{code:'BL4',name:'Bianco med.',hex:'#e4ecf5'}]
+};
+var VG = ['A','B','C','D','BL'];
+var vGroup = 'A';
+var vitaSel = null;
+
+// ── FDI ───────────────────────────────────────────────────────────────────
+var FDI_UPPER = [18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28];
+var FDI_LOWER = [48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38];
+var LAVORAZIONI = ['-- Lavorazione --','Corona','Corona su impianto','Faccetta','Inlay / Onlay','Moncone implantare','Provvisorio','Provvisorio estetico post-estrattivo','Bridge (pilastro)','Protesi parziale','Protesi totale','Splint / Proface','Altro'];
+
+// ── PROTOCOLLO ────────────────────────────────────────────────────────────
+var LVL = [
+  {name:'SUPERIORE',clb:'SUPERIORE',scanPct:28,shots:[
+    {b:'SUP 1/10 - Profilo SX',t:'Parti dal profilo sinistro - altezza fronte',h:'Stai di lato sinistro: vedi il viso di profilo. Camera altezza fronte, inclinata giu.'},
+    {b:'SUP 2/10',t:'Tempia sinistra - scorri verso destra',h:'Mantieni altezza fronte. Scorri lentamente verso destra.'},
+    {b:'SUP 3/10',t:'Fronte sinistra - 3/4',h:'Zona fronte-sopracciglio sinistro.'},
+    {b:'SUP 4/10',t:'Fronte sinistra avanzata',h:'Continua verso il centro.'},
+    {b:'SUP 5/10 - Centro',t:'Fronte centrale - frontale',h:'Centro del viso, fronte frontale.'},
+    {b:'SUP 6/10',t:'Fronte destra - verso DX',h:'Prosegui verso il profilo destro.'},
+    {b:'SUP 7/10',t:'Fronte destra avanzata',h:'Zona fronte-sopracciglio destro.'},
+    {b:'SUP 8/10',t:'Tempia destra - quasi al profilo',h:'Quasi arrivato.'},
+    {b:'SUP 9/10',t:'Zigomo destro - ultimo passaggio',h:'Ultimi centimetri verso il profilo destro.'},
+    {b:'SUP 10/10 - Profilo DX',t:'SUPERIORE completato',h:'Rimani a DESTRA. Abbassa camera al NASO per il CENTRALE.'}
+  ]},
+  {name:'CENTRALE',clb:'CENTRALE',scanPct:50,shots:[
+    {b:'CEN 1/10 - Profilo DX',t:'Profilo destro - altezza naso',h:'Sei a destra. Camera altezza naso, frontale. Percorso INVERSO: DX verso SX.'},
+    {b:'CEN 2/10',t:'Guancia destra - scorri verso sinistra',h:'Mantieni altezza naso.'},
+    {b:'CEN 3/10',t:'Nasolabiale destro - 3/4 DX',h:'Zona naso-guancia destra.'},
+    {b:'CEN 4/10',t:'Avvicinamento al centro',h:'Quasi al centro.'},
+    {b:'CEN 5/10 - Centro',t:'VISO FRONTALE - scatto chiave',h:'Lo scatto piu importante. Viso di fronte, camera altezza naso, primo piano.'},
+    {b:'CEN 6/10 - Centro',t:'VISO FRONTALE - variazione',h:'Leggera variazione rispetto al precedente.'},
+    {b:'CEN 7/10',t:'Nasolabiale sinistro - 3/4 SX',h:'Zona naso-guancia sinistra.'},
+    {b:'CEN 8/10',t:'Guancia sinistra',h:'Quasi al profilo sinistro.'},
+    {b:'CEN 9/10',t:'Zigomo sinistro - ultimo passaggio',h:'Ultimi centimetri verso il profilo sinistro.'},
+    {b:'CEN 10/10 - Profilo SX',t:'CENTRALE completato',h:'Rimani a SINISTRA. Abbassa camera al MENTO per INFERIORE.'}
+  ]},
+  {name:'INFERIORE',clb:'INFERIORE',scanPct:72,shots:[
+    {b:'INF 1/10 - Profilo SX',t:'Profilo sinistro - altezza mento',h:'Sei a sinistra. Camera altezza mento, inclinata verso l alto. SX verso DX.'},
+    {b:'INF 2/10',t:'Mandibola sinistra',h:'Zona mandibola-collo sinistra, vista dal basso.'},
+    {b:'INF 3/10',t:'Angolo mandibola sinistro',h:'Angolo mandibolare sinistro dal basso.'},
+    {b:'INF 4/10',t:'Mento sinistro',h:'Zona mento lato sinistro.'},
+    {b:'INF 5/10 - Centro',t:'Mento centrale - viso dal basso',h:'Centro. Mento e mandibola frontali dal basso.'},
+    {b:'INF 6/10',t:'Mento destro - verso DX',h:'Prosegui verso il profilo destro.'},
+    {b:'INF 7/10',t:'Angolo mandibola destro',h:'Angolo mandibolare destro dal basso.'},
+    {b:'INF 8/10',t:'Mandibola destra',h:'Zona mandibola-collo destra.'},
+    {b:'INF 9/10',t:'Collo destro - quasi al profilo',h:'Ultimi centimetri verso il profilo destro.'},
+    {b:'INF 10/10 - Profilo DX',t:'SET COMPLETATO!',h:'Tutte le 30 foto acquisite. Ottimo lavoro!'}
+  ]}
+];
+var DUMMY = [
+  'Camera altezza FRONTE, inclinata verso il basso.\nProfilo sinistro = viso di profilo a sinistra.\nPercorso: SX - DX.',
+  'Camera altezza NASO, frontale.\nSei rimasto a DESTRA dal livello superiore.\nPercorso INVERSO: DX - SX. Al 5-6 scatto: viso frontale primo piano.',
+  'Camera altezza MENTO, inclinata verso l alto.\nSei rimasto a SINISTRA dal livello centrale.\nPercorso: SX - DX.'
+];
+var LAB_SETS = {
+  R:{name:'Riposo',shots:[
+    {b:'RIPOSO - Frontale 1/3',t:'Labiale frontale - riposo',h:'Solo labbra nel frame. Escludi naso e mento. Labbra chiuse naturalmente.'},
+    {b:'RIPOSO - 3/4 SX 2/3',t:'45 gradi sinistro - riposo',h:'45 gradi lato sinistro. Solo labiale. Labbra chiuse.'},
+    {b:'RIPOSO - 3/4 DX 3/3',t:'45 gradi destro - riposo',h:'45 gradi lato destro. Solo labiale. Labbra chiuse.'}
+  ]},
+  S:{name:'Sorriso',shots:[
+    {b:'SORRISO - Frontale 1/3',t:'Labiale frontale - sorriso',h:'Sorriso leggero, labbra separate, denti visibili.'},
+    {b:'SORRISO - 3/4 SX 2/3',t:'45 gradi sinistro - sorriso',h:'45 gradi sinistra, sorriso naturale.'},
+    {b:'SORRISO - 3/4 DX 3/3',t:'45 gradi destro - sorriso',h:'45 gradi destra, sorriso naturale.'}
+  ]},
+  B:{name:'Apri bocca',shots:[
+    {b:'APRI BOCCA - Frontale 1/3',t:'Labiale frontale - apri bocca',h:'Apribocca ortodontico in posizione. Arcate in occlusione, labbra retratte. Frontale.'},
+    {b:'APRI BOCCA - 3/4 SX 2/3',t:'45 gradi sinistro - apri bocca',h:'Apribocca ortodontico. Labbra retratte. 45 gradi sinistra.'},
+    {b:'APRI BOCCA - 3/4 DX 3/3',t:'45 gradi destro - apri bocca',h:'Apribocca ortodontico. Labbra retratte. 45 gradi destra.'}
+  ]}
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+var cas = {}, photos = {}, stlFiles = [], voiceBlob = null, voiceConf = false;
+var mediaRec = null, audioChunks = [], recInt = null, recSec = 0, isRec = false, isPaused = false;
+var camStream = null, facing = 'environment', curSet = 0, curPh = 0, curLevel = 0;
+var labPh = {R:0,S:0,B:0}, labActive = {R:false,S:false,B:false};
+var camMode = 'main', camLabSet = 'F';
+var sttRec = null, sttActive = false;
+var sentList = [], teethOpen = false, toothRows = [];
+try { sentList = JSON.parse(localStorage.getItem('mk_cases') || '[]'); } catch(e) { sentList = []; }
+
+// ── BOOT ──────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', function() {
+  setDate(); buildVita(); renderCaseList(); initOrient(); initSTT();
+  var d = new Date(); d.setDate(d.getDate()+7);
+  document.getElementById('f-dat').value = d.toISOString().split('T')[0];
+});
+
+function setDate() {
+  var d = new Date();
+  var days = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+  var mon = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+  document.getElementById('home-date').textContent = days[d.getDay()] + ' ' + d.getDate() + ' ' + mon[d.getMonth()];
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────
+function nav(id) {
+  var screens = document.querySelectorAll('.screen');
+  for (var i = 0; i < screens.length; i++) screens[i].classList.remove('active');
+  document.getElementById('sc-suc').style.display = 'none';
+  var s = document.getElementById(id); if (s) s.classList.add('active');
+  document.getElementById('sa').scrollTop = 0;
+  if (id === 'sc-acq') {
+    setTimeout(function() {
+      try { buildThumbs(); } catch(e) {}
+      try { updateLvl();   } catch(e) {}
+      try { updateInstr(); } catch(e) {}
+      try { updateScanLine(); } catch(e) {}
+      try { updateBadge(); } catch(e) {}
+    }, 80);
+  }
+}
+function setNav(i) { var nis = document.querySelectorAll('.ni'); for (var j=0;j<nis.length;j++) nis[j].classList.toggle('active',j===i); }
+
+// ── START NEW ─────────────────────────────────────────────────────────────
+function startNew() {
+  cas = {}; photos = {}; stlFiles = []; vitaSel = null; voiceBlob = null; voiceConf = false;
+  isRec = false; isPaused = false; curSet = 0; curPh = 0; curLevel = 0;
+  labPh = {R:0,S:0,B:0}; labActive = {R:false,S:false,B:false};
+  camMode = 'main'; camLabSet = 'F'; toothRows = [];
+  clearInterval(recInt); recSec = 0;
+  var ids = ['f-paz','f-med','f-not','f-dic','teeth-note'];
+  for (var i=0;i<ids.length;i++) { var el=document.getElementById(ids[i]); if(el) el.value=''; }
+  var sels = ['f-tip','f-arc','f-mat'];
+  for (var j=0;j<sels.length;j++) { var el2=document.getElementById(sels[j]); if(el2) el2.value=''; }
+  document.getElementById('stl-nm').textContent = '';
+  document.getElementById('stl-zone').classList.remove('has');
+  var d = new Date(); d.setDate(d.getDate()+7);
+  document.getElementById('f-dat').value = d.toISOString().split('T')[0];
+  resetRecUI(); selectVG('A');
+  document.getElementById('vsel-t').textContent = '--';
+  document.getElementById('vswatch').style.background = '#e8e4d8';
+  if (teethOpen) toggleTeeth();
+  document.getElementById('sel-tooth-list').innerHTML = '';
+  var labIds = ['R','S','B'];
+  var labTxt = {R:'Riposo nelle 3 viste: frontale, 3/4 SX, 3/4 DX.',S:'Sorriso nelle 3 viste: frontale, 3/4 SX, 3/4 DX.',B:'Apri bocca nelle 3 viste con apribocca ortodontico.'};
+  for (var li=0;li<labIds.length;li++) {
+    var sid=labIds[li];
+    var bd=document.getElementById('lab'+sid+'-body');
+    var bg=document.getElementById('lab'+sid+'-badge');
+    if (bd) { bd.innerHTML=''; var ov=document.createElement('div'); ov.className='opt-overlay'; var sp1=document.createElement('span'); sp1.textContent=labTxt[sid]; ov.appendChild(sp1); var sp2=document.createElement('span'); sp2.className='opt-unlock'; sp2.textContent='Attiva'; (function(s){sp2.onclick=function(){activateLab(s);};})(sid); ov.appendChild(sp2); bd.appendChild(ov); }
+    if (bg) { bg.textContent='0/3 opz.'; bg.className='abadge opt'; }
+  }
+  var sts=document.querySelectorAll('.st'); for(var si=0;si<sts.length;si++) sts[si].classList.toggle('active',si===0);
+  nav('sc-form'); setNav(1);
+}
+
+function goAcq() {
+  var paz = document.getElementById('f-paz').value.trim();
+  if (!paz) { showToast('Inserisci il nome del paziente'); return; }
+  cas.paz=paz; cas.med=document.getElementById('f-med').value.trim();
+  cas.dat=document.getElementById('f-dat').value; cas.tip=document.getElementById('f-tip').value;
+  cas.arc=document.getElementById('f-arc').value; cas.mat=document.getElementById('f-mat').value;
+  cas.not=document.getElementById('f-not').value.trim(); cas.vita=vitaSel;
+  cas.dic=document.getElementById('f-dic').value.trim();
+  var sn=[]; for(var i=0;i<stlFiles.length;i++) sn.push(stlFiles[i].name); cas.stlN=sn.join(', ');
+  cas.teethNote=document.getElementById('teeth-note').value.trim();
+  var th=[]; for(var j=0;j<toothRows.length;j++){if(toothRows[j].num)th.push({num:toothRows[j].num,type:toothRows[j].type});} cas.teeth=th;
+  nav('sc-acq'); setNav(1);
+}
+
+function goRecap() { buildRecap(); nav('sc-recap'); setNav(2); }
+
+// ── TEETH / FDI ───────────────────────────────────────────────────────────
+function toggleTeeth() {
+  teethOpen=!teethOpen;
+  var tb=document.getElementById('teeth-body'); if(tb) tb.style.display=teethOpen?'flex':'none';
+  var tt=document.getElementById('teeth-tog'); if(tt) tt.classList.toggle('open',teethOpen);
+  if (teethOpen) { buildFDIGrid(); renderSelectedTeeth(); }
+}
+function buildFDIGrid() { buildFDIRow('fdi-upper',FDI_UPPER); buildFDIRow('fdi-lower',FDI_LOWER); }
+function buildFDIRow(id,teeth) {
+  var cont=document.getElementById(id); if(!cont) return; cont.innerHTML='';
+  for(var i=0;i<teeth.length;i++) {
+    var num=teeth[i]; var hw=false;
+    for(var ti=0;ti<toothRows.length;ti++){if(parseInt(toothRows[ti].num)===num){hw=true;break;}}
+    var div=document.createElement('div'); div.className='fdi-tooth'+(hw?' has-work':''); div.dataset.num=num;
+    var tn=document.createElement('span'); tn.className='t-num'; tn.textContent=num;
+    var td=document.createElement('span'); td.className='t-dot';
+    div.appendChild(tn); div.appendChild(td);
+    (function(n){div.onclick=function(){toggleTooth(n);};})(num);
+    cont.appendChild(div);
+  }
+}
+function toggleTooth(num) {
+  var existing=-1;
+  for(var i=0;i<toothRows.length;i++){if(parseInt(toothRows[i].num)===num){existing=i;break;}}
+  if(existing>-1){toothRows.splice(existing,1);}
+  else{toothRows.push({id:Date.now(),num:num,type:''});}
+  buildFDIGrid(); renderSelectedTeeth();
+}
+function renderSelectedTeeth() {
+  var cont=document.getElementById('sel-tooth-list'); if(!cont) return; cont.innerHTML='';
+  if(toothRows.length===0){var empty=document.createElement('div');empty.style.cssText='font-size:12px;color:rgba(232,234,240,0.45);text-align:center;padding:8px 0';empty.textContent='Tocca uno o piu denti sullo schema per selezionarli';cont.appendChild(empty);return;}
+  var hdr=document.createElement('div');hdr.style.cssText='font-size:10px;color:#C9A84C;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px';hdr.textContent=toothRows.length+' dent'+(toothRows.length===1?'e':'i')+' selezionat'+(toothRows.length===1?'o':'i');cont.appendChild(hdr);
+  var sorted=toothRows.slice().sort(function(a,b){return parseInt(a.num)-parseInt(b.num);});
+  for(var i=0;i<sorted.length;i++){
+    (function(row){
+      var d=document.createElement('div');d.className='sel-tooth-row';
+      var num=document.createElement('span');num.className='sel-tooth-num';num.textContent=row.num;
+      var sel=document.createElement('select');sel.className='sel-tooth-sel';
+      for(var j=0;j<LAVORAZIONI.length;j++){var o=document.createElement('option');o.value=j===0?'':LAVORAZIONI[j];o.textContent=LAVORAZIONI[j];if(row.type===LAVORAZIONI[j])o.selected=true;sel.appendChild(o);}
+      sel.onchange=function(){for(var ti=0;ti<toothRows.length;ti++){if(parseInt(toothRows[ti].num)===parseInt(row.num)){toothRows[ti].type=this.value;break;}}};
+      var del=document.createElement('button');del.className='sel-tooth-del';del.textContent='x';del.onclick=function(){toggleTooth(parseInt(row.num));};
+      d.appendChild(num);d.appendChild(sel);d.appendChild(del);cont.appendChild(d);
+    })(sorted[i]);
+  }
+  if(sorted.length>=2){var nums=[];for(var bi=0;bi<sorted.length;bi++)nums.push(sorted[bi].num);var hint=document.createElement('div');hint.className='bridge-hint';hint.textContent='Applica Bridge '+nums[0]+' > '+nums[nums.length-1]+' a tutti i denti selezionati';hint.onclick=function(){for(var bk=0;bk<toothRows.length;bk++){var found=false;for(var bl=0;bl<nums.length;bl++){if(parseInt(toothRows[bk].num)===parseInt(nums[bl])){found=true;break;}}if(found)toothRows[bk].type='Bridge (pilastro)';}renderSelectedTeeth();};cont.appendChild(hint);}
+}
+
+// ── VITA ──────────────────────────────────────────────────────────────────
+function buildVita() {
+  var row=document.getElementById('vg-row');row.innerHTML='';
+  for(var i=0;i<VG.length;i++){var t=document.createElement('div');t.className='vg-tab'+(VG[i]===vGroup?' active':'');t.textContent=VG[i]==='BL'?'Bleach':VG[i];(function(g){t.onclick=function(){selectVG(g);};})(VG[i]);row.appendChild(t);}
+  renderChips();
+}
+function selectVG(g) {
+  vGroup=g;var tabs=document.querySelectorAll('.vg-tab');for(var i=0;i<tabs.length;i++)tabs[i].classList.toggle('active',VG[i]===g);renderChips();
+}
+function renderChips() {
+  var row=document.getElementById('vc-row');row.innerHTML='';var list=VD[vGroup]||[];
+  for(var i=0;i<list.length;i++){var v=list[i];var lum=hexLum(v.hex);var tc=lum>0.55?'#222':'#111';var d=document.createElement('div');d.className='vc'+(vitaSel===v.code?' sel':'');d.dataset.code=v.code;d.style.background=v.hex;var sp1=document.createElement('span');sp1.className='vcode';sp1.style.color=tc;sp1.textContent=v.code;var sp2=document.createElement('span');sp2.className='vname';sp2.style.color=tc;sp2.textContent=v.name;d.appendChild(sp1);d.appendChild(sp2);(function(vv){d.onclick=function(){pickV(vv,d);};})(v);row.appendChild(d);}
+}
+function pickV(v,el) {
+  var vcs=document.querySelectorAll('.vc');for(var i=0;i<vcs.length;i++)vcs[i].classList.remove('sel');
+  el.classList.add('sel');vitaSel=v.code;document.getElementById('vswatch').style.background=v.hex;document.getElementById('vsel-t').textContent=v.code+' - '+(v.code.indexOf('BL')===0?'Bleach':v.code[0]);document.getElementById('vsel-s').textContent=v.name;
+}
+function hexLum(h){var r=parseInt(h.slice(1,3),16)/255,g=parseInt(h.slice(3,5),16)/255,b=parseInt(h.slice(5,7),16)/255;return 0.2126*r+0.7152*g+0.0722*b;}
+
+// ── STL ───────────────────────────────────────────────────────────────────
+function onSTL(e) {
+  stlFiles=[];for(var i=0;i<e.target.files.length;i++)stlFiles.push(e.target.files[i]);
+  var nm=[];for(var j=0;j<stlFiles.length;j++)nm.push(stlFiles[j].name);
+  document.getElementById('stl-nm').textContent=nm.join('\n');document.getElementById('stl-zone').classList.add('has');showToast(stlFiles.length+' file STL caricati');
+}
+
+// ── VOICE ─────────────────────────────────────────────────────────────────
+function toggleRec(){if(isRec&&!isPaused)pauseRec();else if(isPaused)resumeRec();else startRec();}
+function startRec(){
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
+    audioChunks=[];mediaRec=new MediaRecorder(s);
+    mediaRec.ondataavailable=function(e){if(e.data.size>0)audioChunks.push(e.data);};
+    mediaRec.onstop=function(){voiceBlob=new Blob(audioChunks,{type:'audio/webm'});s.getTracks().forEach(function(t){t.stop();});document.getElementById('audio-btns').style.display='flex';document.getElementById('v-badge').textContent=fmt(recSec);};
+    mediaRec.start(500);isRec=true;isPaused=false;recSec=0;tick();recInt=setInterval(tick,1000);setMicUI('rec');
+  }).catch(function(){showToast('Microfono non disponibile');});
+}
+function pauseRec(){if(mediaRec&&mediaRec.state==='recording')mediaRec.pause();isPaused=true;clearInterval(recInt);setMicUI('pau');}
+function resumeRec(){if(mediaRec&&mediaRec.state==='paused')mediaRec.resume();isPaused=false;recInt=setInterval(tick,1000);setMicUI('rec');}
+function stopRec(){if(mediaRec&&(mediaRec.state==='recording'||mediaRec.state==='paused'))mediaRec.stop();isRec=false;isPaused=false;clearInterval(recInt);setMicUI('stopped');}
+function confirmRec(){voiceConf=true;setMicUI('done');document.getElementById('v-badge').className='abadge ok';showToast('Nota vocale confermata');}
+function resetRec(){voiceBlob=null;voiceConf=false;isRec=false;isPaused=false;clearInterval(recInt);recSec=0;resetRecUI();}
+function resetRecUI(){setMicUI('idle');document.getElementById('mic-timer').style.visibility='hidden';document.getElementById('mic-timer').textContent='0:00';document.getElementById('audio-btns').style.display='none';document.getElementById('v-badge').textContent='--';document.getElementById('v-badge').className='abadge';}
+function setMicUI(st){
+  var r=document.getElementById('mic-ring'),em=document.getElementById('mic-emoji'),lb=document.getElementById('mic-lbl'),tm=document.getElementById('mic-timer');
+  r.className='mic-ring';
+  if(st==='rec'){r.classList.add('rec');em.innerHTML='&#9646;&#9646;';lb.textContent='In registrazione - tocca per pausa';tm.style.visibility='visible';}
+  else if(st==='pau'){r.classList.add('pau');em.innerHTML='&#9654;';lb.textContent='In pausa - tocca per riprendere';}
+  else if(st==='stopped'){em.innerHTML='&#127908;';lb.textContent='Completata - conferma o riregistra';}
+  else if(st==='done'){r.classList.add('done');em.innerHTML='&#10003;';lb.textContent='Nota vocale salvata';}
+  else{em.innerHTML='&#127908;';lb.textContent='Tocca per avviare - compatibile con guanti';}
+}
+function tick(){var el=document.getElementById('mic-timer');el.style.visibility='visible';el.textContent=fmt(recSec);recSec++;}
+function fmt(s){return Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60);}
+
+// ── STT ───────────────────────────────────────────────────────────────────
+function initSTT() {
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){document.getElementById('stt-lbl').textContent='STT non disponibile';return;}
+  sttRec=new SR();sttRec.lang='it-IT';sttRec.continuous=true;sttRec.interimResults=true;
+  sttRec.onstart=function(){setSttUI(true);};
+  sttRec.onend=function(){setSttUI(false);if(sttActive)setTimeout(function(){try{sttRec.start();}catch(e){}},600);};
+  sttRec.onresult=function(e){
+    var interim='',fin='';
+    for(var i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)fin+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
+    var tl=document.getElementById('tr-live');if(tl){tl.style.display='block';tl.textContent=interim||'...';}
+    if(fin)handleSTT(fin.toLowerCase().trim());
+  };
+  sttRec.onerror=function(){setSttUI(false);};
+}
+function toggleSTT(){if(sttActive){sttActive=false;try{sttRec.stop();}catch(e){}setSttUI(false);}else{sttActive=true;try{sttRec.start();}catch(e){}}}
+function setSttUI(on){document.getElementById('stt-pill').className='stt-pill'+(on?' lst':'');document.getElementById('stt-lbl').textContent=on?'In ascolto...':'Tocca per attivare ascolto vocale';}
+
+function handleSTT(t) {
+  if(t.indexOf('makeit registra')>-1){if(!isRec||isPaused){toggleRec();showToast('Registrazione avviata');}return;}
+  if(t.indexOf('makeit pausa')>-1){if(isRec&&!isPaused){pauseRec();showToast('Pausa');}return;}
+  if(t.indexOf('makeit stop')>-1){if(isRec){stopRec();showToast('Fermata');}return;}
+  if(t.indexOf('makeit conferma')>-1){confirmRec();return;}
+  if(!isRec){
+    var tNorm=t.replace(/\buno\b/g,'1').replace(/\bdue\b/g,'2').replace(/\btre\b/g,'3').replace(/\bquattro\b/g,'4').replace(/\bcinque\b/g,'5').replace(/\bvirgola cinque\b/g,'.5').replace(/\bpunto cinque\b/g,'.5');
+    var pM=t.match(/paziente\s+([a-z\s]+?)(?:\s*,|\s*medico|\s*consegna|$)/);if(pM){var ep=document.getElementById('f-paz');if(ep){ep.value=cap(pM[1].trim());showToast('Paziente: '+cap(pM[1].trim()));}}
+    var mM=t.match(/(?:medico|dottore|dottor)\s+([a-z\s]+?)(?:\s*,|\s*consegna|\s*paziente|$)/);if(mM){var em=document.getElementById('f-med');if(em){em.value=cap(mM[1].trim());showToast('Medico: '+cap(mM[1].trim()));}}
+    var dateM=t.match(/consegna\s+(\d{1,2})\s+(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)(?:\s+(\d{4}))?/);
+    if(dateM){var mesiMap={gennaio:1,febbraio:2,marzo:3,aprile:4,maggio:5,giugno:6,luglio:7,agosto:8,settembre:9,ottobre:10,novembre:11,dicembre:12};var anno=dateM[3]?parseInt(dateM[3]):new Date().getFullYear();var mese=mesiMap[dateM[2]];var giorno=parseInt(dateM[1]);var ds=anno+'-'+(mese<10?'0':'')+mese+'-'+(giorno<10?'0':'')+giorno;var ed=document.getElementById('f-dat');if(ed){ed.value=ds;showToast('Consegna: '+dateM[1]+' '+dateM[2]);}}
+    var vM=tNorm.match(/colore\s+([a-d][0-9.]+|bl[1-4])/i);
+    if(vM){var code=vM[1].toUpperCase();var g=code.indexOf('BL')===0?'BL':code[0];selectVG(g);setTimeout(function(){var chip=document.querySelector('.vc[data-code="'+code+'"]');if(chip){var list=VD[g]||[];for(var vi=0;vi<list.length;vi++){if(list[vi].code===code){pickV(list[vi],chip);break;}}}},150);showToast('Colore: '+code);}
+    var dentiTrovati=[];var dReg=/\b([1-4][1-8])\b/g;var dMatch;while((dMatch=dReg.exec(t))!==null){var n=parseInt(dMatch[1]);if((n>=11&&n<=18)||(n>=21&&n<=28)||(n>=31&&n<=38)||(n>=41&&n<=48))dentiTrovati.push(n);}
+    var matMap=[{keys:['zirconi','zirconio'],val:'Zirconio'},{keys:['emax','e.max','disilicato'],val:'E.max'},{keys:['composit'],val:'Composito'},{keys:['metallo'],val:'Metallo-ceramica'},{keys:['pmma'],val:'PMMA'}];
+    var matTrovato=null;for(var mi=0;mi<matMap.length;mi++){for(var mki=0;mki<matMap[mi].keys.length;mki++){if(t.indexOf(matMap[mi].keys[mki])>-1){matTrovato=matMap[mi].val;break;}}if(matTrovato)break;}
+    if(matTrovato){var em2=document.getElementById('f-mat');if(em2){em2.value=matTrovato;showToast('Materiale: '+matTrovato);}}
+    var lavMap=[{keys:['corona su impianto','corona implant'],val:'Corona singola',sub:'Corona su impianto'},{keys:['corona'],val:'Corona singola'},{keys:['bridge','ponte'],val:'Bridge'},{keys:['faccett'],val:'Corona singola',sub:'Faccetta'},{keys:['scheletr'],val:'Scheletrato'},{keys:['totale','protesi totale'],val:'Protesi totale'},{keys:['parziale'],val:'Protesi parziale'},{keys:['impianto'],val:'Impianto'},{keys:['splint','proface'],val:'Splint / Proface'},{keys:['provvisori'],val:'Corona singola',sub:'Provvisorio'}];
+    var lavTrovato=null,lavSub=null;for(var li2=0;li2<lavMap.length;li2++){for(var lki=0;lki<lavMap[li2].keys.length;lki++){if(t.indexOf(lavMap[li2].keys[lki])>-1){lavTrovato=lavMap[li2].val;lavSub=lavMap[li2].sub||null;break;}}if(lavTrovato)break;}
+    if(lavTrovato){var et=document.getElementById('f-tip');if(et){et.value=lavTrovato;showToast('Lavoro: '+lavTrovato);}}
+    if(dentiTrovati.length>0){
+      var hasSup=false,hasInf=false;for(var di=0;di<dentiTrovati.length;di++){var dn=dentiTrovati[di];if(dn>=11&&dn<=28)hasSup=true;if(dn>=31&&dn<=48)hasInf=true;}
+      var arcVal=hasSup&&hasInf?'Entrambe':hasSup?'Superiore':'Inferiore';var ea=document.getElementById('f-arc');if(ea){ea.value=arcVal;showToast('Arcata: '+arcVal);}
+      if(!teethOpen)toggleTeeth();
+      for(var di2=0;di2<dentiTrovati.length;di2++){var dn2=dentiTrovati[di2];var already=false;for(var ti=0;ti<toothRows.length;ti++){if(parseInt(toothRows[ti].num)===dn2){already=true;break;}}if(!already){var lavDenteMap={'Corona singola':'Corona','Bridge':'Bridge (pilastro)','Faccetta':'Faccetta','Provvisorio':'Provvisorio','Corona su impianto':'Corona su impianto'};var lavDente=lavDenteMap[lavSub]||lavDenteMap[lavTrovato]||'';toothRows.push({id:Date.now()+di2,num:dn2,type:lavDente});}}
+      buildFDIGrid();renderSelectedTeeth();showToast(dentiTrovati.length+' dent'+(dentiTrovati.length===1?'e':'i')+' aggiunti');
+    }
+    if(dentiTrovati.length===0){if(t.indexOf('superiore')>-1&&t.indexOf('inferior')===-1){var ea2=document.getElementById('f-arc');if(ea2)ea2.value='Superiore';}else if(t.indexOf('inferior')>-1&&t.indexOf('superior')===-1){var ea3=document.getElementById('f-arc');if(ea3)ea3.value='Inferiore';}else if(t.indexOf('entrambe')>-1){var ea4=document.getElementById('f-arc');if(ea4)ea4.value='Entrambe';}}
+    var nM=t.match(/nota\s+(.+)/);if(nM){var en=document.getElementById('f-not');if(en){en.value+=(en.value?'\n':'')+cap(nM[1]);showToast('Nota aggiunta');}}
+  }
+}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+
+// ── FOTO ──────────────────────────────────────────────────────────────────
+function totalPh(){var c=0;for(var k in photos){if(photos.hasOwnProperty(k))c++;}return c;}
+function setCount(s){var c=0;for(var k in photos){if(photos.hasOwnProperty(k)&&k.indexOf(s+'-')===0)c++;}return c;}
+function lvlCount(s,lv){var c=0;for(var i=lv*10;i<lv*10+10;i++){if(photos[s+'-'+i])c++;}return c;}
+function switchSet(s){curSet=s;curLevel=0;curPh=0;var sts=document.querySelectorAll('.st');for(var i=0;i<sts.length;i++)sts[i].classList.toggle('active',i===s);buildThumbs();updateLvl();updateInstr();updateBadge();}
+function jumpLevel(lv){curLevel=lv;curPh=lv*10;buildThumbs();updateLvl();updateInstr();}
+function jumpPh(i){curPh=i;curLevel=Math.floor(i/10);buildThumbs();updateInstr();updateLvl();}
+function buildThumbs(){
+  var strip=document.getElementById('ph-thumbs');if(!strip)return;strip.innerHTML='';
+  for(var i=0;i<30;i++){var key=curSet+'-'+i;var div=document.createElement('div');div.className='pt'+(i===curPh?' cur':'')+(photos[key]?' ok':'');var pn=document.createElement('span');pn.className='pnum';pn.textContent=''+(i+1);div.appendChild(pn);if(photos[key]){var img=document.createElement('img');img.src=photos[key];div.appendChild(img);}(function(ii){div.onclick=function(){jumpPh(ii);};})(i);strip.appendChild(div);}
+  var btn=document.getElementById('cam-btn');if(!btn)return;if(curPh>=30){btn.disabled=true;btn.textContent='Set completato';}else{btn.disabled=false;btn.textContent='Scatta Foto '+(curPh+1)+'/30';}
+}
+function updateLvl(){for(var lv=0;lv<3;lv++){var el=document.getElementById('lv'+lv);if(!el)return;var cnt=lvlCount(curSet,lv);document.getElementById('lc'+lv).textContent=cnt+'/10';el.className='lvl-block'+(lv===curLevel?' active':'')+(cnt===10?' dnlv':'');}}
+function updateInstr(){var bi=document.getElementById('instr-badge');if(!bi)return;var li=curPh-(curLevel*10);var lv=LVL[curLevel];var sh=lv.shots[Math.min(li,lv.shots.length-1)];bi.textContent=sh.b;document.getElementById('instr-txt').textContent=sh.t;document.getElementById('instr-hint').textContent=sh.h;document.getElementById('dummy-guide').textContent=DUMMY[curLevel]||'';}
+function updateBadge(){var pb=document.getElementById('ph-badge');if(!pb)return;var rip=setCount(0);pb.textContent=totalPh()+' foto';pb.className='abadge'+(rip===30?' ok':'');}
+function updateScanLine(){var sl=document.getElementById('scan-line');if(!sl)return;var cv=document.getElementById('clb-val');var lv=LVL[curLevel]||LVL[0];sl.style.top=lv.scanPct+'%';if(cv)cv.textContent=lv.clb;}
+
+// ── LAB SETS ──────────────────────────────────────────────────────────────
+function activateLab(setId){
+  labActive[setId]=true;labPh[setId]=0;var body=document.getElementById('lab'+setId+'-body');var ls=LAB_SETS[setId];if(!body||!ls)return;body.innerHTML='';
+  var tip=document.createElement('div');tip.style.cssText='padding:10px 16px 0;font-size:12px;color:#C9A84C;font-weight:600';tip.textContent='Set '+ls.name+' attivo - '+ls.shots.length+' foto.';body.appendChild(tip);
+  var thumbs=document.createElement('div');thumbs.className='ph-thumbs';thumbs.id='labTh-'+setId;thumbs.style.padding='8px 16px';body.appendChild(thumbs);
+  var ic=document.createElement('div');ic.className='instr-card';ic.style.margin='0 16px 12px';var it=document.createElement('div');it.className='instr-top';var ib=document.createElement('div');ib.className='instr-badge';ib.id='labB-'+setId;ib.textContent=ls.shots[0].b;it.appendChild(ib);var ixt=document.createElement('div');ixt.className='instr-txt';ixt.id='labT-'+setId;ixt.textContent=ls.shots[0].t;it.appendChild(ixt);var ih=document.createElement('div');ih.className='instr-hint';ih.id='labH-'+setId;ih.textContent=ls.shots[0].h;it.appendChild(ih);ic.appendChild(it);body.appendChild(ic);
+  var btn=document.createElement('button');btn.className='cam-btn';btn.id='labBtn-'+setId;(function(sid){btn.onclick=function(){openCam('lab',sid);};})(setId);body.appendChild(btn);
+  refreshLabSet(setId);
+}
+function refreshLabSet(setId){
+  var ls=LAB_SETS[setId];var strip=document.getElementById('labTh-'+setId);if(!strip)return;strip.innerHTML='';
+  for(var i=0;i<3;i++){var key='lab'+setId+'-'+i;var div=document.createElement('div');div.className='pt'+(i===labPh[setId]?' cur':'')+(photos[key]?' ok':'');var pn=document.createElement('span');pn.className='pnum';pn.textContent=''+(i+1);div.appendChild(pn);if(photos[key]){var img=document.createElement('img');img.src=photos[key];div.appendChild(img);}(function(ii,sid){div.onclick=function(){labPh[sid]=ii;refreshLabSet(sid);};})(i,setId);strip.appendChild(div);}
+  var sh=ls.shots[Math.min(labPh[setId],2)];var bb=document.getElementById('labB-'+setId);if(bb)bb.textContent=sh.b;var bt=document.getElementById('labT-'+setId);if(bt)bt.textContent=sh.t;var bh=document.getElementById('labH-'+setId);if(bh)bh.textContent=sh.h;
+  var btn=document.getElementById('labBtn-'+setId);if(btn){if(labPh[setId]>=3){btn.disabled=true;btn.textContent='Set completato';}else{btn.disabled=false;btn.textContent='Scatta Foto '+(labPh[setId]+1)+'/3';}}
+  var cnt=0;for(var k in photos){if(photos.hasOwnProperty(k)&&k.indexOf('lab'+setId+'-')===0)cnt++;}var bg=document.getElementById('lab'+setId+'-badge');if(bg){bg.textContent=cnt===3?'3/3':cnt+'/3 opz.';bg.className='abadge'+(cnt===3?' ok':' opt');}
+}
+
+// ── CAMERA ────────────────────────────────────────────────────────────────
+function openCam(mode,labSetId){
+  camMode=mode||'main';if(labSetId)camLabSet=labSetId;
+  if(camMode==='main'&&curPh>=30){showToast('Set completato');return;}
+  if(camMode==='lab'&&labPh[camLabSet]>=3){showToast('Set completato');return;}
+  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:3024},height:{ideal:4032}}}).then(function(s){
+    if(camStream)camStream.getTracks().forEach(function(t){t.stop();});camStream=s;
+    var track=s.getVideoTracks()[0];try{var caps=track.getCapabilities&&track.getCapabilities();if(caps&&caps.zoom)track.applyConstraints({advanced:[{zoom:2.4}]});}catch(e){}
+    document.getElementById('cam-video').srcObject=s;document.getElementById('cam-overlay').classList.add('open');updateCamGuide();updateScanLine();
+  }).catch(function(){showToast('Fotocamera non disponibile');});
+}
+function updateCamGuide(){
+  var sh;if(camMode==='lab'){var ls=LAB_SETS[camLabSet];sh=ls.shots[Math.min(labPh[camLabSet],2)];}else{var li=curPh-(curLevel*10);sh=LVL[curLevel].shots[Math.min(li,9)];}
+  document.getElementById('co-step').textContent=sh.b;document.getElementById('co-txt').textContent=sh.t;document.getElementById('co-hint').textContent=sh.h;var cv=document.getElementById('clb-val');if(cv)cv.textContent=camMode==='lab'?('LAB '+camLabSet):(LVL[curLevel]&&LVL[curLevel].clb)||'';
+}
+function closeCam(){if(camStream)camStream.getTracks().forEach(function(t){t.stop();});camStream=null;document.getElementById('cam-overlay').classList.remove('open');camMode='main';}
+function flipCam(){facing=facing==='user'?'environment':'user';openCam(camMode,camLabSet);}
+function snapPhoto(){
+  var vid=document.getElementById('cam-video');var can=document.getElementById('cc');can.width=vid.videoWidth;can.height=vid.videoHeight;can.getContext('2d').drawImage(vid,0,0);var data=can.toDataURL('image/jpeg',0.88);
+  if(camMode==='lab'){photos['lab'+camLabSet+'-'+labPh[camLabSet]]=data;labPh[camLabSet]++;if(labPh[camLabSet]>=3){closeCam();showToast('Set completato!');}else refreshLabSet(camLabSet);}
+  else{photos[curSet+'-'+curPh]=data;curPh++;if(curPh%10===0&&curPh<30)curLevel=Math.floor(curPh/10);if(curPh>=30){closeCam();showToast('Set completato!');}buildThumbs();updateLvl();updateInstr();updateBadge();updateCamGuide();updateScanLine();}
+  showToast('Foto '+totalPh()+' acquisita');var sh2=document.getElementById('cam-sh');sh2.style.background='#aaa';setTimeout(function(){sh2.style.background='#fff';},90);
+}
+function initOrient(){window.addEventListener('deviceorientation',function(e){var g=e.gamma||0;var ind=document.getElementById('lvl-cam-i');if(!ind)return;var off=Math.max(-36,Math.min(36,g));ind.style.left='calc(50% + '+(off*0.5)+'px)';ind.style.background=Math.abs(g)<3?'#52c47a':Math.abs(g)<8?'#C9A84C':'#e05252';});}
+
+// ── RECAP ─────────────────────────────────────────────────────────────────
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+function rrow(key,val,ok){var d=el('div','rr');var k=el('span','rk',key);var v=el('span','rv');if(ok===true){v.className='rv rok';v.textContent=val;}else if(ok===false){var s=el('span','rmiss',val);v.appendChild(s);}else{v.textContent=val;}d.appendChild(k);d.appendChild(v);return d;}
+function buildRecap(){
+  var df=cas.dat?new Date(cas.dat+'T12:00:00').toLocaleDateString('it-IT'):'--';
+  var rip=setCount(0),sor=setCount(1),boc=setCount(2);
+  var labR=0,labS=0,labB=0;for(var k in photos){if(!photos.hasOwnProperty(k))continue;if(k.indexOf('labR-')===0)labR++;else if(k.indexOf('labS-')===0)labS++;else if(k.indexOf('labB-')===0)labB++;}
+  var th='--';if(cas.teeth&&cas.teeth.length){var ta=[];for(var i=0;i<cas.teeth.length;i++)ta.push(cas.teeth[i].num+': '+cas.teeth[i].type);th=ta.join(', ');}
+  var body=document.getElementById('recap-body');body.innerHTML='';
+  var c1=el('div','rc');c1.appendChild(el('div','rl','Dati Caso'));c1.appendChild(rrow('Paziente',cas.paz||'--'));c1.appendChild(rrow('Medico',cas.med||'--'));c1.appendChild(rrow('Consegna',df));c1.appendChild(rrow('Tipo lavoro',cas.tip||'--'));c1.appendChild(rrow('Denti',th));c1.appendChild(rrow('Arcata',cas.arc||'--'));c1.appendChild(rrow('Materiale',cas.mat||'--'));c1.appendChild(rrow('Colore VITA',cas.vita||'--',cas.vita?true:null));c1.appendChild(rrow('Note tecniche',cas.teethNote||'--'));body.appendChild(c1);
+  var c2=el('div','rc');c2.appendChild(el('div','rl','File Clinici'));c2.appendChild(rrow('STL',stlFiles.length?stlFiles.length+' file':null,stlFiles.length?true:false));c2.appendChild(rrow('CBCT',cas.dic?'link inserito':null,cas.dic?true:false));body.appendChild(c2);
+  var c3=el('div','rc');c3.appendChild(el('div','rl','Acquisizioni'));c3.appendChild(rrow('Nota vocale',voiceConf?'Confermata':null,voiceConf?true:false));c3.appendChild(rrow('Riposo (obbl.)',rip===30?'30/30':rip+'/30',rip===30?true:null));c3.appendChild(rrow('Sorriso',sor===30?'30/30':sor+'/30 opz.',sor===30?true:null));c3.appendChild(rrow('Apri bocca',boc===30?'30/30':boc+'/30 opz.',boc===30?true:null));c3.appendChild(rrow('Lab. Riposo',labR===3?'3/3':labR+'/3 opz.',labR===3?true:null));c3.appendChild(rrow('Lab. Sorriso',labS===3?'3/3':labS+'/3 opz.',labS===3?true:null));c3.appendChild(rrow('Lab. Apri bocca',labB===3?'3/3':labB+'/3 opz.',labB===3?true:null));body.appendChild(c3);
+}
+
+// ── INVIO CON FIREBASE ────────────────────────────────────────────────────
+function sendToLab() {
+  var rip=setCount(0),sor=setCount(1),boc=setCount(2);
+  var labR=0,labS=0,labB=0;for(var k in photos){if(!photos.hasOwnProperty(k))continue;if(k.indexOf('labR-')===0)labR++;else if(k.indexOf('labS-')===0)labS++;else if(k.indexOf('labB-')===0)labB++;}
+  var th='--';if(cas.teeth&&cas.teeth.length){var ta=[];for(var i=0;i<cas.teeth.length;i++)ta.push('Dente '+cas.teeth[i].num+': '+cas.teeth[i].type);th=ta.join(', ');}
+
+  var rxId='RX-'+Math.floor(Math.random()*9000+1000);
+  var caseData={
+    id:rxId, paziente:cas.paz||'--', medico:cas.med||'--', consegna:cas.dat||'--',
+    tipo:cas.tip||'--', arcata:cas.arc||'--', materiale:cas.mat||'--', colore:cas.vita||'--',
+    denti:th, noteTecniche:cas.teethNote||'--', noteCliniche:cas.not||'--',
+    stl:cas.stlN||'--', cbct:cas.dic||'--',
+    fotoRiposo:rip, fotoSorriso:sor, fotoApriBocca:boc,
+    labRiposo:labR, labSorriso:labS, labApriBocca:labB,
+    audio:voiceConf, status:'ricevuto',
+    createdAt:new Date().toISOString()
+  };
+
+  showToast('Invio in corso...');
+
+  // Salva su Firestore
+  db.collection('casi').doc(rxId).set(caseData).then(function() {
+    showToast('Salvato su Firebase: '+rxId);
+    // Invia notifica WhatsApp
+    var msg='NUOVO CASO - MakeitDigital Dental Service\n';
+    msg+='ID: '+rxId+'\n';
+    msg+='Paziente: '+cas.paz+'\nMedico: '+(cas.med||'--')+'\nConsegna: '+(cas.dat||'--')+'\n';
+    msg+='Lavoro: '+(cas.tip||'--')+'\nDenti: '+th+'\nArcata: '+(cas.arc||'--')+' | Materiale: '+(cas.mat||'--')+' | Colore: '+(cas.vita||'--')+'\n';
+    msg+='Foto: Riposo '+rip+'/30 | Sorriso '+sor+'/30 | Apri bocca '+boc+'/30\n';
+    msg+='Audio: '+(voiceConf?'SI':'--')+'\n';
+    msg+='Apri portale lab per tutti i dettagli.';
+    window.open('https://wa.me/'+LAB_WA+'?text='+encodeURIComponent(msg),'_blank');
+    onSent(rxId);
+  }).catch(function(e) {
+    showToast('Errore Firebase - invio solo WA');
+    // Fallback WhatsApp
+    var msg2='NUOVO CASO - '+cas.paz+' | '+cas.tip+' | Consegna: '+cas.dat;
+    window.open('https://wa.me/'+LAB_WA+'?text='+encodeURIComponent(msg2),'_blank');
+    onSent(rxId);
+  });
+}
+
+function onSent(rxId) {
+  sentList.unshift({paz:cas.paz,tip:cas.tip||'Caso',ts:new Date().toISOString(),id:rxId});
+  if(sentList.length>20)sentList=sentList.slice(0,20);
+  try{localStorage.setItem('mk_cases',JSON.stringify(sentList));}catch(e){}
+  renderCaseList();
+  var screens=document.querySelectorAll('.screen');for(var i=0;i<screens.length;i++)screens[i].classList.remove('active');
+  document.getElementById('sc-suc').style.display='flex';
+  var sub=document.getElementById('suc-sub');if(sub)sub.textContent='Caso '+rxId+' salvato su Firebase. Il lab ha ricevuto la notifica.';
+  document.getElementById('bnav').style.display='none';
+  setTimeout(function(){document.getElementById('bnav').style.display='flex';},2800);
+}
+
+// ── CASE LIST ─────────────────────────────────────────────────────────────
+function renderCaseList(){
+  var l=document.getElementById('case-list');l.innerHTML='';
+  if(!sentList.length){var e=document.createElement('div');e.className='empty-state';var ei=document.createElement('div');ei.className='empty-icon';ei.textContent='📋';e.appendChild(ei);e.appendChild(document.createTextNode('Nessun caso ancora. Premi Nuovo Caso per iniziare.'));l.appendChild(e);return;}
+  for(var i=0;i<Math.min(sentList.length,8);i++){var c=sentList[i];var d=new Date(c.ts);var ds=d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});var card=document.createElement('div');card.className='case-card';var dot=document.createElement('div');dot.className='case-dot';var info=document.createElement('div');var cn=document.createElement('div');cn.className='case-name';cn.textContent=c.paz;var cm=document.createElement('div');cm.className='case-meta';cm.textContent=(c.id?c.id+' - ':'')+c.tip+' - '+ds;info.appendChild(cn);info.appendChild(cm);var arr=document.createElement('div');arr.className='case-arr';arr.textContent='>';card.appendChild(dot);card.appendChild(info);card.appendChild(arr);l.appendChild(card);}
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+var _tt;
+function showToast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(function(){t.classList.remove('show');},2500);}
+</script>
+</body>
+</html>
