@@ -10,6 +10,7 @@
 <title>MakeitDigital — Dental Service</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html { height: 100%; }
@@ -242,11 +243,15 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
 .suc-sub   { font-size: 14px; color: rgba(232,234,240,0.45); text-align: center; }
 
 /* NAV */
-.bnav { display: flex; background: #0d0f14; border-top: 1px solid rgba(255,255,255,0.08); padding: 8px 0 20px; }
+.bnav { display: flex; background: #0d0f14; border-top: 1px solid rgba(255,255,255,0.08); padding: 8px 0 20px; align-items: center; }
 .ni   { flex: 1; background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 6px 0; }
 .nicon { font-size: 22px; color: rgba(216,221,227,0.35); }
 .nlbl  { font-size: 10px; color: rgba(216,221,227,0.35); font-weight: 700; letter-spacing: 1px; }
 .ni.active .nicon, .ni.active .nlbl { color: #C9A84C; }
+.nav-brand { flex: 2; display: flex; flex-direction: column; align-items: center; gap: 1px; pointer-events: none; }
+.nav-brand-main { font-size: 13px; font-weight: 800; }
+.nav-brand-main span.gold { color: #C9A84C; }
+.nav-brand-sub { font-size: 8px; color: rgba(216,221,227,0.4); letter-spacing: 2px; text-transform: uppercase; }
 
 /* FIREBASE BADGE */
 .firebase-badge { position: fixed; top: 8px; right: 8px; background: rgba(82,196,122,0.15); border: 1px solid rgba(82,196,122,0.3); color: #52c47a; font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 10px; z-index: 9998; display: none; }
@@ -265,11 +270,7 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
 
   <!-- HOME -->
   <div id="sc-home" class="screen active">
-   <div class="hdr-center">
-    <div class="hdr-main">makeit<span class="gold"> DIGITAL</span></div>
-    <div class="hdr-sub">Dental Service</div>
-   </div>
-   <div class="home-top"><div class="home-g">Portale Clinico &mdash;</div><div class="home-d" id="home-date"></div></div>
+   <div class="home-top" style="padding-top:16px"><div class="home-g">Portale Clinico &mdash;</div><div class="home-d" id="home-date"></div></div>
    <div style="padding:20px 18px 0"><button class="btn-gold" onclick="startNew()"><span style="font-size:22px">+</span> Nuovo Caso</button></div>
    <div class="sec-lbl">Casi Recenti</div>
    <div class="case-list" id="case-list"></div>
@@ -333,7 +334,6 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
       <div class="vita-sel-bar"><div class="vswatch" id="vswatch" style="background:#e8e4d8"></div><div><div class="vsel-t" id="vsel-t">--</div><div class="vsel-s" id="vsel-s">Tocca uno shade</div></div></div>
      </div>
     </div>
-    <div class="fg"><div class="flbl">Note cliniche</div><textarea class="fta" id="f-not" placeholder="Indicazioni, urgenze, istruzioni speciali..."></textarea></div>
     <button class="btn-gold" onclick="goAcq()">Avanti &mdash; Acquisizioni</button>
    </div>
   </div>
@@ -423,6 +423,7 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
 
  <nav class="bnav" id="bnav">
   <button class="ni active" id="ni0" onclick="nav('sc-home');setNav(0)"><span class="nicon">&#127968;</span><span class="nlbl">HOME</span></button>
+  <div class="nav-brand"><div class="nav-brand-main">makeit<span class="gold"> DIGITAL</span></div><div class="nav-brand-sub">Dental Service</div></div>
   <button class="ni" id="ni1" onclick="startNew();setNav(1)"><span class="nicon">+</span><span class="nlbl">NUOVO</span></button>
   <button class="ni" id="ni2" onclick="goRecap();setNav(2)"><span class="nicon">&#128228;</span><span class="nlbl">INVIA</span></button>
  </nav>
@@ -595,7 +596,7 @@ function startNew() {
   labPh = {R:0,S:0,B:0}; labActive = {R:false,S:false,B:false};
   camMode = 'main'; camLabSet = 'F'; toothRows = []; ponticRows = [];
   clearInterval(recInt); recSec = 0;
-  var ids = ['f-paz','f-med','f-not','teeth-note'];
+  var ids = ['f-paz','f-med','teeth-note'];
   for (var i=0;i<ids.length;i++) { var el=document.getElementById(ids[i]); if(el) el.value=''; }
   var sels = ['f-tip','f-arc','f-mat'];
   for (var j=0;j<sels.length;j++) { var el2=document.getElementById(sels[j]); if(el2) el2.value=''; }
@@ -629,7 +630,6 @@ function loadCase(caseData) {
     if (caseData.tipo)     { var et=document.getElementById('f-tip'); if(et) et.value=caseData.tipo; }
     if (caseData.arcata)   { var ea=document.getElementById('f-arc'); if(ea) ea.value=caseData.arcata; }
     if (caseData.materiale){ var ema=document.getElementById('f-mat'); if(ema) ema.value=caseData.materiale; }
-    if (caseData.noteCliniche) { var en=document.getElementById('f-not'); if(en) en.value=caseData.noteCliniche; }
     if (caseData.noteTecniche) { var ent=document.getElementById('teeth-note'); if(ent) ent.value=caseData.noteTecniche; }
     if (caseData.colore && caseData.colore !== '--') {
       var code = caseData.colore;
@@ -650,8 +650,8 @@ function goAcq() {
   cas.paz=paz; cas.med=document.getElementById('f-med').value.trim();
   cas.dat=document.getElementById('f-dat').value; cas.tip=document.getElementById('f-tip').value;
   cas.arc=document.getElementById('f-arc').value; cas.mat=document.getElementById('f-mat').value;
-  cas.not=document.getElementById('f-not').value.trim(); cas.vita=vitaSel;
-  cas.teethNote=document.getElementById('teeth-note').value.trim();
+  cas.not=document.getElementById('teeth-note').value.trim(); cas.vita=vitaSel;
+  cas.teethNote=cas.not;
   var th=[]; for(var j=0;j<toothRows.length;j++){if(toothRows[j].num)th.push({num:toothRows[j].num,type:toothRows[j].type});} cas.teeth=th;
   nav('sc-acq'); setNav(1);
 }
@@ -823,8 +823,15 @@ function toggleSTT(){
 }
 function toggleNoteSTT(){
   if(!sttRec){showToast('STT non disponibile');return;}
-  if(noteSTTActive){noteSTTActive=false;sttActive=false;try{sttRec.stop();}catch(e){}setSttNoteUI(false);}
-  else{noteSTTActive=true;sttActive=true;try{sttRec.start();}catch(e){}setSttNoteUI(true);showToast('Dettatura nota attivata');}
+  if(noteSTTActive){
+    noteSTTActive=false;
+    if(!sttActive){try{sttRec.stop();}catch(e){}}
+    setSttNoteUI(false);showToast('Dettatura nota fermata');
+  } else {
+    noteSTTActive=true;
+    if(!sttActive){sttActive=true;try{sttRec.start();}catch(e){}}
+    setSttNoteUI(true);showToast('Dettatura nota attivata - parla');
+  }
 }
 function setSttUI(on){
   var pill=document.getElementById('stt-pill');var lbl=document.getElementById('stt-lbl');
@@ -842,10 +849,10 @@ function handleNoteSTT(t){
 }
 
 function handleSTT(t) {
-  // ── REGISTRAZIONE AUDIO ──
-  if(t.indexOf('makeit registra')>-1){if(!isRec||isPaused){toggleRec();showToast('Registrazione avviata');}return;}
-  if(t.indexOf('makeit pausa')>-1){if(isRec&&!isPaused){pauseRec();showToast('Pausa');}return;}
-  if(t.indexOf('makeit stop')>-1){if(isRec){stopRec();showToast('Fermata');}return;}
+  // ── REGISTRAZIONE AUDIO — sempre attivi se STT acceso ──
+  if(t.indexOf('makeit registra')>-1){if(!isRec||isPaused){toggleRec();}showToast('Registrazione avviata');return;}
+  if(t.indexOf('makeit pausa')>-1){if(isRec&&!isPaused){pauseRec();}showToast('Pausa');return;}
+  if(t.indexOf('makeit stop')>-1){if(isRec){stopRec();}showToast('Fermata');return;}
   if(t.indexOf('makeit conferma')>-1){confirmRec();return;}
 
   // ── NAVIGAZIONE ──
@@ -871,10 +878,10 @@ function handleSTT(t) {
   // ── DATI CLINICI ──
   // Normalizza colore A (trascritto in lettere da iOS)
   var tNorm = t
-    .replace(/\ba\s+uno\b/gi,'A1').replace(/\ba\s+due\b/gi,'A2')
     .replace(/\ba\s+tre\s+e\s+mezzo\b/gi,'A3.5').replace(/\ba\s+tre\s+virgola\s+cinque\b/gi,'A3.5')
     .replace(/\ba\s+tre\s+punto\s+cinque\b/gi,'A3.5').replace(/\ba\s+tre\s+cinque\b/gi,'A3.5')
-    .replace(/\ba\s+tre\b/gi,'A3').replace(/\ba\s+quattro\b/gi,'A4')
+    .replace(/\ba\s+tre\b/gi,'A3').replace(/\ba\s+uno\b/gi,'A1').replace(/\ba\s+due\b/gi,'A2')
+    .replace(/\ba\s+quattro\b/gi,'A4')
     .replace(/\buno\b/g,'1').replace(/\bdue\b/g,'2').replace(/\btre\b/g,'3')
     .replace(/\bquattro\b/g,'4').replace(/\bcinque\b/g,'5')
     .replace(/\bvirgola cinque\b/g,'.5').replace(/\bpunto cinque\b/g,'.5');
@@ -924,7 +931,7 @@ function handleSTT(t) {
   }
 
   var nM=t.match(/nota\s+(.+)/);
-  if(nM){var en=document.getElementById('f-not');if(en){en.value+=(en.value?'\n':'')+cap(nM[1]);showToast('Nota aggiunta');}}
+  if(nM){var en=document.getElementById('teeth-note');if(en){en.value+=(en.value?'\n':'')+cap(nM[1]);showToast('Nota aggiunta');}}
 }
 function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 
