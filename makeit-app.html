@@ -288,7 +288,6 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
     <div class="fsub">Di' frasi cliniche naturali: <strong style="color:#C9A84C">"corona in zirconio sul 16"</strong> o scrivi manualmente.</div>
     <div style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.18);border-radius:9px;padding:8px 12px;font-size:11px;color:rgba(232,234,240,0.45);line-height:1.9">
      <span style="color:#C9A84C;font-weight:700">Comandi:</span> "paziente [nome]" &bull; "medico [nome]" &bull; "corona in zirconio sul 16" &bull; "consegna 20 gennaio" &bull; "colore A3" &bull; "nota [testo]" &bull; "avanti"
-    </div>
     <div class="stt-pill" id="stt-pill" onclick="toggleSTT()" style="font-size:12px;padding:7px 14px"><div class="stt-dot"></div><span id="stt-lbl">Tocca per attivare ascolto vocale</span></div>
     <div class="tr-live" id="tr-live" style="display:none"></div>
     <div class="fg"><div class="flbl">Nome Paziente *</div><input class="fi" id="f-paz" type="text" placeholder="Es. Mario Rossi" autocomplete="off"></div>
@@ -351,7 +350,7 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
    <div class="step-bar"><div class="sd done"></div><div class="sd done"></div><div class="sd cur"></div><div class="sd"></div></div>
    <div style="padding:10px 18px 6px"><div style="font-size:18px;font-weight:700">Acquisizioni</div><div style="font-size:13px;color:rgba(232,234,240,0.45);margin-top:2px">Nota vocale + Protocollo fotografico</div></div>
    <div style="margin:0 18px 4px;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.2);border-radius:9px;padding:8px 12px;font-size:11px;color:rgba(232,234,240,0.45);line-height:1.8">
-    <span style="color:#C9A84C;font-weight:700">Comandi:</span> "makeit registra" &bull; "makeit pausa" &bull; "makeit stop" &bull; "makeit conferma" &bull; "avanti riepilogo" &bull; "invia al lab"
+    <span style="color:#C9A84C;font-weight:700">Comandi:</span> "registra" &bull; "pausa" &bull; "stop" &bull; "conferma" &bull; "avanti riepilogo" &bull; "invia al lab"
    </div>
    <div style="padding:4px 18px 8px">
     <div class="stt-pill" id="stt-acq-pill" onclick="toggleSTTAcq()" style="font-size:12px;padding:7px 14px"><div class="stt-dot"></div><span id="stt-acq-lbl">Tocca per attivare comandi vocali</span></div>
@@ -361,7 +360,7 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
     <div class="acq-card">
      <div class="acq-hdr"><span class="acq-icon">&#127897;</span><div><div class="acq-t">Nota Vocale</div><div class="acq-s">Descrizione clinica del caso</div></div><div class="abadge" id="v-badge">--</div></div>
      <div class="voice-area">
-      <div class="mic-cmds"><b>Dettatura vocale:</b> tocca il microfono, parla liberamente. Il testo si accumula. Tocca Conferma per salvare.<br><b>Comandi:</b> "makeit registra" &bull; "makeit stop" &bull; "makeit conferma"</div>
+      <div class="mic-cmds"><b>Dettatura vocale:</b> tocca il microfono e parla. Il testo si accumula.<br><b>Comandi:</b> "registra" &bull; "stop" &bull; "conferma"</div>
       <div class="mic-ring" id="mic-ring" onclick="toggleVoiceNote()"><span class="mic-emoji" id="mic-emoji">&#127908;</span></div>
       <div class="mic-lbl" id="mic-lbl">Tocca per iniziare dettatura</div>
       <div id="voice-note-box" style="display:none;width:100%;background:#1a1e28;border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:12px 14px;font-size:14px;line-height:1.6;min-height:80px;word-break:break-word;color:#e8eaf0"></div>
@@ -814,10 +813,12 @@ function initSTT() {
       var box = document.getElementById('voice-note-box');
       if (box) box.textContent = (voiceNoteText + fin + interim).trim();
       if (fin) {
-        voiceNoteText += fin;
         var fl = fin.toLowerCase().trim();
-        if (fl.indexOf('makeit stop') > -1 || fl.indexOf('makeit ferma') > -1) { stopVoiceNote(); return; }
-        if (fl.indexOf('makeit conferma') > -1) { confirmVoiceNote(); return; }
+        // Comandi senza prefisso makeit
+        if (fl.indexOf('stop') > -1 || fl.indexOf('pausa') > -1 || fl.indexOf('ferma') > -1) { stopVoiceNote(); return; }
+        if (fl.indexOf('conferma') > -1 || fl.indexOf('salva') > -1) { confirmVoiceNote(); return; }
+        // Aggiungi testo solo se non è un comando
+        voiceNoteText += fin;
       }
     } else if (sttMode === 'comandi') {
       var tl = document.getElementById('tr-live');
@@ -922,20 +923,19 @@ function resetVoiceNote() {
 }
 
 function handleSTT(t) {
-  // ── NOTA VOCALE (STT) ──
-  if(t.indexOf('makeit registra')>-1){startVoiceNote();return;}
-  if(t.indexOf('makeit stop')>-1){stopVoiceNote();return;}
-  if(t.indexOf('makeit conferma')>-1){confirmVoiceNote();return;}
-  if(t.indexOf('makeit pausa')>-1){stopVoiceNote();return;}
+  // ── NOTA VOCALE ──
+  if(t.indexOf('registra')>-1&&t.length<12){startVoiceNote();return;}
+  if(t.indexOf('stop')>-1&&t.length<8){stopVoiceNote();return;}
+  if(t.indexOf('pausa')>-1&&t.length<9){stopVoiceNote();return;}
+  if((t.indexOf('conferma')>-1||t.indexOf('salva')>-1)&&t.length<12){confirmVoiceNote();return;}
 
   // ── NAVIGAZIONE ──
   if(t.indexOf('vai a casa')>-1||(t.indexOf('home')>-1&&t.length<10)){nav('sc-home');setNav(0);showToast('Home');return;}
   if(t.indexOf('nuovo caso')>-1||(t.indexOf('nuovo')>-1&&t.length<10)){startNew();return;}
   if(t.indexOf('avanti riepilogo')>-1||t.indexOf('vai al riepilogo')>-1||t.indexOf('riepilogo')>-1){goRecap();return;}
-  if(t.indexOf('avanti acquisizioni')>-1||t.indexOf('acquisizioni')>-1||(t.indexOf('avanti')>-1&&t.length<10)){goAcq();return;}
-  if(t.indexOf('invia al lab')>-1||t.indexOf('invia laboratorio')>-1||t.indexOf('manda al lab')>-1){
-    // Salva dati correnti se siamo nel form
-    var paz=document.getElementById('f-paz');if(paz&&paz.value.trim()){cas.paz=paz.value.trim();}
+  if(t.indexOf('avanti acquisizioni')>-1||(t.indexOf('avanti')>-1&&t.length<10)){goAcq();return;}
+  if(t.indexOf('invia al lab')>-1||t.indexOf('invia laboratorio')>-1||t.indexOf('manda al lab')>-1||t.indexOf('invia')>-1&&t.length<9){
+    var paz=document.getElementById('f-paz');if(paz&&paz.value.trim())cas.paz=paz.value.trim();
     var med=document.getElementById('f-med');if(med)cas.med=med.value.trim();
     var dat=document.getElementById('f-dat');if(dat)cas.dat=dat.value;
     var tip=document.getElementById('f-tip');if(tip)cas.tip=tip.value;
@@ -944,7 +944,7 @@ function handleSTT(t) {
     var tn=document.getElementById('teeth-note');if(tn){cas.teethNote=tn.value.trim();cas.not=cas.teethNote;}
     cas.vita=vitaSel;
     var th2=[];for(var ji=0;ji<toothRows.length;ji++){if(toothRows[ji].num)th2.push({num:toothRows[ji].num,type:toothRows[ji].type});}cas.teeth=th2;
-    sendToLab();return;
+    showToast('Invio in corso...');sendToLab();return;
   }
   if(t.indexOf('torna ai dati')>-1||t.indexOf('torna dati')>-1){nav('sc-form');setNav(1);return;}
 
