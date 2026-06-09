@@ -364,7 +364,7 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
       <div class="mic-cmds"><b>Dettatura vocale:</b> tocca il microfono e parla. Il testo si accumula.<br><b>Comandi:</b> "registra" &bull; "stop" &bull; "conferma"</div>
       <div class="mic-ring" id="mic-ring" onclick="toggleVoiceNote()"><span class="mic-emoji" id="mic-emoji">&#127908;</span></div>
       <div class="mic-lbl" id="mic-lbl">Tocca per iniziare dettatura</div>
-      <div id="voice-note-box" style="display:none;width:100%;background:#1a1e28;border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:12px 14px;font-size:14px;line-height:1.6;min-height:80px;word-break:break-word;color:#e8eaf0"></div>
+      <textarea id="voice-note-box" style="display:none;width:100%;background:#1a1e28;border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:12px 14px;font-size:14px;line-height:1.6;min-height:80px;word-break:break-word;color:#e8eaf0;resize:vertical;font-family:-apple-system,sans-serif;outline:none" placeholder="Testo dettato — modifica qui prima di confermare"></textarea>
       <div class="audio-btns" style="display:none" id="audio-btns">
        <button class="abtn" onclick="resetVoiceNote()">&#8635; Cancella</button>
        <button class="abtn pri" onclick="confirmVoiceNote()">&#10003; Conferma</button>
@@ -812,7 +812,7 @@ function initSTT() {
     }
     if (sttMode === 'dettatura') {
       var box = document.getElementById('voice-note-box');
-      if (box) box.textContent = (voiceNoteText + fin + interim).trim();
+      if (box) box.value = (voiceNoteText + fin + interim).trim();
       if (fin) {
         var fl = fin.toLowerCase().trim();
         // Comandi senza prefisso makeit
@@ -905,19 +905,22 @@ function stopVoiceNote() {
 }
 function confirmVoiceNote() {
   if (sttMode === 'dettatura') { sttMode = null; try { sttRec.stop(); } catch(e) {} }
-  if (!voiceNoteText.trim()) { showToast('Nessun testo dettato'); return; }
+  // Legge il testo dalla textarea — include eventuali correzioni manuali
+  var box = document.getElementById('voice-note-box');
+  if (box) voiceNoteText = box.value.trim();
+  if (!voiceNoteText) { showToast('Nessun testo da salvare'); return; }
   voiceConf = true;
   var r = document.getElementById('mic-ring'); var em = document.getElementById('mic-emoji'); var lb = document.getElementById('mic-lbl');
   if (r) { r.className = 'mic-ring done'; if(em) em.innerHTML = '&#10003;'; if(lb) lb.textContent = 'Nota salvata'; }
   var vb = document.getElementById('v-badge'); if (vb) { vb.className = 'abadge ok'; vb.textContent = 'Salvata'; }
   document.getElementById('audio-btns').style.display = 'none';
-  showToast('Nota vocale salvata (' + voiceNoteText.trim().split(' ').length + ' parole)');
+  showToast('Nota vocale salvata (' + voiceNoteText.split(' ').length + ' parole)');
   syncSttUI();
 }
 function resetVoiceNote() {
   if (sttMode === 'dettatura') { sttMode = null; try { sttRec.stop(); } catch(e) {} }
   voiceNoteText = ''; voiceConf = false; sttActive = false;
-  var box = document.getElementById('voice-note-box'); if (box) { box.textContent = ''; box.style.display = 'none'; }
+  var box = document.getElementById('voice-note-box'); if (box) { box.value = ''; box.style.display = 'none'; }
   var ab = document.getElementById('audio-btns'); if (ab) ab.style.display = 'none';
   var vb = document.getElementById('v-badge'); if (vb) { vb.textContent = '--'; vb.className = 'abadge'; }
   syncSttUI();
