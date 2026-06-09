@@ -193,7 +193,7 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
 .opt-unlock  { display: inline-block; padding: 10px 24px; background: rgba(201,168,76,0.13); border: 1px solid rgba(201,168,76,0.28); border-radius: 20px; color: #C9A84C; font-size: 13px; font-weight: 700; cursor: pointer; }
 
 /* CAMERA */
-#cam-overlay { position: fixed; inset: 0; background: #000; z-index: 9000; display: none; flex-direction: column; }
+#cam-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; flex-direction: column; }
 #cam-overlay.open { display: flex; }
 #cam-video   { width: 100%; flex: 1; object-fit: cover; }
 .cam-ui      { position: absolute; inset: 0; pointer-events: none; }
@@ -208,15 +208,15 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
 .cam-lvl-c    { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid #C9A84C; background: transparent; flex-shrink: 0; }
 .cam-lvl-i    { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 20px; height: 3px; background: #C9A84C; border-radius: 2px; }
 .cam-scan-line { position: absolute; left: 14%; right: 14%; height: 2px; background: rgba(201,168,76,0.4); pointer-events: none; }
-.cam-top      { position: absolute; top: 0; left: 0; right: 0; background: linear-gradient(to bottom,rgba(0,0,0,0.85),transparent); padding: 16px 16px 36px; pointer-events: none; }
+.cam-top      { position: absolute; top: 0; left: 0; right: 0; background: linear-gradient(to bottom,rgba(0,0,0,0.9),transparent); padding: 52px 16px 36px; pointer-events: none; }
 .co-step      { font-size: 10px; color: #C9A84C; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
 .co-txt       { font-size: 15px; font-weight: 700; color: #fff; }
 .co-hint      { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; }
-.cam-zoom-b   { position: absolute; top: 16px; right: 16px; background: rgba(201,168,76,0.18); border: 1px solid rgba(201,168,76,0.28); color: #C9A84C; font-family: 'Courier New', monospace; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 14px; pointer-events: none; }
-.cam-lvl-badge { position: absolute; bottom: 90px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); border: 1px solid rgba(201,168,76,0.3); border-radius: 12px; padding: 5px 14px; pointer-events: none; }
+.cam-zoom-b   { position: absolute; top: 52px; right: 16px; background: rgba(201,168,76,0.18); border: 1px solid rgba(201,168,76,0.28); color: #C9A84C; font-family: 'Courier New', monospace; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 14px; pointer-events: none; }
+.cam-lvl-badge { position: absolute; bottom: 140px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); border: 1px solid rgba(201,168,76,0.3); border-radius: 12px; padding: 5px 14px; pointer-events: none; }
 .clb-lbl { font-size: 9px; color: rgba(216,221,227,0.5); text-align: center; letter-spacing: 1px; text-transform: uppercase; }
 .clb-val { font-size: 13px; font-weight: 700; color: #C9A84C; text-align: center; font-family: 'Courier New', monospace; }
-.cam-bottom   { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top,rgba(0,0,0,0.9),transparent); padding: 20px 30px 40px; display: flex; align-items: center; justify-content: space-between; }
+.cam-bottom   { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top,rgba(0,0,0,0.9),transparent); padding: 16px 30px 50px; display: flex; align-items: center; justify-content: space-between; }
 .cam-cancel   { background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 15px; font-weight: 600; padding: 12px 20px; border-radius: 22px; cursor: pointer; font-family: -apple-system, sans-serif; }
 .cam-shutter  { width: 72px; height: 72px; border-radius: 50%; background: #fff; border: 4px solid rgba(255,255,255,0.4); cursor: pointer; }
 .cam-shutter:active { background: #ccc; }
@@ -1080,7 +1080,10 @@ function openCam(mode,labSetId){
   navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:3024},height:{ideal:4032}}}).then(function(s){
     if(camStream)camStream.getTracks().forEach(function(t){t.stop();});camStream=s;
     var track=s.getVideoTracks()[0];try{var caps=track.getCapabilities&&track.getCapabilities();if(caps&&caps.zoom)track.applyConstraints({advanced:[{zoom:2.4}]});}catch(e){}
-    document.getElementById('cam-video').srcObject=s;document.getElementById('cam-overlay').classList.add('open');updateCamGuide();updateScanLine();
+    document.getElementById('cam-video').srcObject=s;
+    document.getElementById('cam-overlay').classList.add('open');
+    var fb=document.getElementById('fb-badge');if(fb)fb.style.display='none';
+    updateCamGuide();updateScanLine();
   }).catch(function(){showToast('Fotocamera non disponibile');});
 }
 function updateCamGuide(){
@@ -1088,7 +1091,13 @@ function updateCamGuide(){
   document.getElementById('co-step').textContent=sh.b;document.getElementById('co-txt').textContent=sh.t;document.getElementById('co-hint').textContent=sh.h;
   var cv=document.getElementById('clb-val');if(cv)cv.textContent=camMode==='lab'?('LAB '+camLabSet):((LVL[curLevel]&&LVL[curLevel].clb)||'');
 }
-function closeCam(){if(camStream)camStream.getTracks().forEach(function(t){t.stop();});camStream=null;document.getElementById('cam-overlay').classList.remove('open');camMode='main';}
+function closeCam(){
+  if(camStream)camStream.getTracks().forEach(function(t){t.stop();});
+  camStream=null;
+  document.getElementById('cam-overlay').classList.remove('open');
+  var fb=document.getElementById('fb-badge');if(fb)fb.style.display='';
+  camMode='main';
+}
 function flipCam(){facing=facing==='user'?'environment':'user';openCam(camMode,camLabSet);}
 function snapPhoto(){
   var vid=document.getElementById('cam-video');var can=document.getElementById('cc');can.width=vid.videoWidth;can.height=vid.videoHeight;can.getContext('2d').drawImage(vid,0,0);var data=can.toDataURL('image/jpeg',0.88);
