@@ -361,13 +361,13 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
     <div class="acq-card">
      <div class="acq-hdr"><span class="acq-icon">&#127897;</span><div><div class="acq-t">Nota Vocale</div><div class="acq-s">Descrizione clinica del caso</div></div><div class="abadge" id="v-badge">--</div></div>
      <div class="voice-area">
-      <div class="mic-cmds"><b>Comandi vocali:</b> "makeit registra" &bull; "makeit pausa" &bull; "makeit stop" &bull; "makeit conferma"</div>
-      <div class="mic-timer" id="mic-timer" style="visibility:hidden">0:00</div>
-      <div class="mic-ring" id="mic-ring" onclick="toggleRec()"><span class="mic-emoji" id="mic-emoji">&#127908;</span></div>
-      <div class="mic-lbl" id="mic-lbl">Tocca per avviare &mdash; compatibile con guanti</div>
+      <div class="mic-cmds"><b>Dettatura vocale:</b> tocca il microfono, parla liberamente. Il testo si accumula. Tocca Conferma per salvare.<br><b>Comandi:</b> "makeit registra" &bull; "makeit stop" &bull; "makeit conferma"</div>
+      <div class="mic-ring" id="mic-ring" onclick="toggleVoiceNote()"><span class="mic-emoji" id="mic-emoji">&#127908;</span></div>
+      <div class="mic-lbl" id="mic-lbl">Tocca per iniziare dettatura</div>
+      <div id="voice-note-box" style="display:none;width:100%;background:#1a1e28;border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:12px 14px;font-size:14px;line-height:1.6;min-height:80px;word-break:break-word;color:#e8eaf0"></div>
       <div class="audio-btns" style="display:none" id="audio-btns">
-       <button class="abtn" onclick="resetRec()">&#8635; Riregistra</button>
-       <button class="abtn pri" onclick="confirmRec()">&#10003; Conferma</button>
+       <button class="abtn" onclick="resetVoiceNote()">&#8635; Cancella</button>
+       <button class="abtn pri" onclick="confirmVoiceNote()">&#10003; Conferma</button>
       </div>
      </div>
     </div>
@@ -560,8 +560,8 @@ var LAB_SETS = {
 };
 
 // ── STATE ─────────────────────────────────────────────────────────────────
-var cas = {}, photos = {}, voiceBlob = null, voiceConf = false;
-var mediaRec = null, audioChunks = [], recInt = null, recSec = 0, isRec = false, isPaused = false;
+var cas = {}, photos = {}, voiceNoteText = '', voiceConf = false;
+var vnRec = null, vnActive = false; // STT dedicato nota vocale
 var camStream = null, facing = 'environment', curSet = 0, curPh = 0, curLevel = 0;
 var labPh = {R:0,S:0,B:0}, labActive = {R:false,S:false,B:false};
 var camMode = 'main', camLabSet = 'F';
@@ -604,18 +604,19 @@ function setNav(i) { var nis = document.querySelectorAll('.ni'); for (var j=0;j<
 
 // ── START NEW ─────────────────────────────────────────────────────────────
 function startNew() {
-  cas = {}; photos = {}; voiceBlob = null; voiceConf = false;
-  isRec = false; isPaused = false; curSet = 0; curPh = 0; curLevel = 0;
+  cas = {}; photos = {}; voiceNoteText = ''; voiceConf = false;
+  vnActive = false; if(vnRec){try{vnRec.stop();}catch(e){}} vnRec=null;
+  curSet = 0; curPh = 0; curLevel = 0;
   labPh = {R:0,S:0,B:0}; labActive = {R:false,S:false,B:false};
   camMode = 'main'; camLabSet = 'F'; toothRows = []; ponticRows = [];
-  clearInterval(recInt); recSec = 0;
+  resetVoiceNote();
   var ids = ['f-paz','f-med','teeth-note'];
   for (var i=0;i<ids.length;i++) { var el=document.getElementById(ids[i]); if(el) el.value=''; }
   var sels = ['f-tip','f-arc','f-mat'];
   for (var j=0;j<sels.length;j++) { var el2=document.getElementById(sels[j]); if(el2) el2.value=''; }
   var d = new Date(); d.setDate(d.getDate()+7);
   document.getElementById('f-dat').value = d.toISOString().split('T')[0];
-  resetRecUI(); selectVG('A');
+  selectVG('A');
   document.getElementById('vsel-t').textContent = '--';
   document.getElementById('vswatch').style.background = '#e8e4d8';
   if (teethOpen) toggleTeeth();
@@ -785,59 +786,66 @@ function hexLum(h){var r=parseInt(h.slice(1,3),16)/255,g=parseInt(h.slice(3,5),1
 
 // ── VOICE RECORDING ───────────────────────────────────────────────────────
 function toggleRec(){if(isRec&&!isPaused)pauseRec();else if(isPaused)resumeRec();else startRec();}
-function startRec(){
-  navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
-    audioChunks=[];
-    // iOS Safari supporta audio/mp4, non audio/webm
-    var mimeType = 'audio/webm';
-    if (!MediaRecorder.isTypeSupported('audio/webm')) {
-      mimeType = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '';
+// ── NOTA VOCALE (STT testuale) ────────────────────────────────────────────
+function toggleVoiceNote(){
+  if(vnActive){stopVoiceNote();}else{startVoiceNote();}
+}
+function startVoiceNote(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){showToast('STT non disponibile su questo browser');return;}
+  if(vnRec){try{vnRec.stop();}catch(e){}}
+  vnRec=new SR();vnRec.lang='it-IT';vnRec.continuous=true;vnRec.interimResults=true;
+  vnRec.onresult=function(e){
+    var fin='',interim='';
+    for(var i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal)fin+=e.results[i][0].transcript+' ';
+      else interim+=e.results[i][0].transcript;
     }
-    mediaRec = mimeType ? new MediaRecorder(s, {mimeType: mimeType}) : new MediaRecorder(s);
-    mediaRec.ondataavailable=function(e){if(e.data&&e.data.size>0)audioChunks.push(e.data);};
-    mediaRec.onstop=function(){
-      var type=mediaRec.mimeType||'audio/webm';
-      voiceBlob=new Blob(audioChunks,{type:type});
-      s.getTracks().forEach(function(t){t.stop();});
-      document.getElementById('audio-btns').style.display='flex';
-      document.getElementById('v-badge').textContent=fmt(recSec);
-      showToast('Registrazione completata - premi Conferma');
-    };
-    mediaRec.start(500);isRec=true;isPaused=false;recSec=0;tick();recInt=setInterval(tick,1000);setMicUI('rec');
-  }).catch(function(){showToast('Microfono non disponibile');});
-}
-function pauseRec(){if(mediaRec&&mediaRec.state==='recording')mediaRec.pause();isPaused=true;clearInterval(recInt);setMicUI('pau');}
-function resumeRec(){if(mediaRec&&mediaRec.state==='paused')mediaRec.resume();isPaused=false;recInt=setInterval(tick,1000);setMicUI('rec');}
-function stopRec(){
-  if(mediaRec&&(mediaRec.state==='recording'||mediaRec.state==='paused'))mediaRec.stop();
-  isRec=false;isPaused=false;clearInterval(recInt);setMicUI('stopped');
-  // Mostra sempre i bottoni dopo stop
+    var box=document.getElementById('voice-note-box');
+    if(box){box.textContent=(voiceNoteText+fin+interim).trim();}
+    if(fin){voiceNoteText+=(fin);}
+  };
+  vnRec.onerror=function(e){
+    if(e.error!=='aborted'){showToast('Errore microfono: '+e.error);}
+    setVnUI(false);vnActive=false;
+  };
+  vnRec.onend=function(){
+    if(vnActive){setTimeout(function(){try{vnRec.start();}catch(e){}},300);}
+    else{setVnUI(false);}
+  };
+  vnRec.start();vnActive=true;setVnUI(true);
+  document.getElementById('voice-note-box').style.display='block';
   document.getElementById('audio-btns').style.display='flex';
+  showToast('Dettatura attiva - parla');
 }
-function confirmRec(){
-  if(isRec){stopRec();setTimeout(function(){doConfirm();},600);return;}
-  doConfirm();
+function stopVoiceNote(){
+  vnActive=false;if(vnRec){try{vnRec.stop();}catch(e){}vnRec=null;}
+  setVnUI(false);
+  if(voiceNoteText.trim()){showToast('Tocca Conferma per salvare');}
 }
-function doConfirm(){
+function confirmVoiceNote(){
+  stopVoiceNote();
+  if(!voiceNoteText.trim()){showToast('Nessun testo dettato');return;}
   voiceConf=true;
-  setMicUI('done');
+  setVnUI('done');
   var vb=document.getElementById('v-badge');if(vb){vb.className='abadge ok';vb.textContent='Salvata';}
   document.getElementById('audio-btns').style.display='none';
-  showToast('Nota vocale salvata');
+  showToast('Nota vocale salvata ('+voiceNoteText.trim().split(' ').length+' parole)');
 }
-function resetRec(){voiceBlob=null;voiceConf=false;isRec=false;isPaused=false;clearInterval(recInt);recSec=0;resetRecUI();}
-function resetRecUI(){setMicUI('idle');document.getElementById('mic-timer').style.visibility='hidden';document.getElementById('mic-timer').textContent='0:00';document.getElementById('audio-btns').style.display='none';document.getElementById('v-badge').textContent='--';document.getElementById('v-badge').className='abadge';}
-function setMicUI(st){
-  var r=document.getElementById('mic-ring'),em=document.getElementById('mic-emoji'),lb=document.getElementById('mic-lbl'),tm=document.getElementById('mic-timer');
-  r.className='mic-ring';
-  if(st==='rec'){r.classList.add('rec');em.innerHTML='&#9646;&#9646;';lb.textContent='In registrazione - tocca per pausa';tm.style.visibility='visible';}
-  else if(st==='pau'){r.classList.add('pau');em.innerHTML='&#9654;';lb.textContent='In pausa - tocca per riprendere';}
-  else if(st==='stopped'){em.innerHTML='&#127908;';lb.textContent='Completata - conferma o riregistra';}
-  else if(st==='done'){r.classList.add('done');em.innerHTML='&#10003;';lb.textContent='Nota vocale salvata';}
-  else{em.innerHTML='&#127908;';lb.textContent='Tocca per avviare - compatibile con guanti';}
+function resetVoiceNote(){
+  stopVoiceNote();voiceNoteText='';voiceConf=false;
+  var box=document.getElementById('voice-note-box');if(box){box.textContent='';box.style.display='none';}
+  var ab=document.getElementById('audio-btns');if(ab)ab.style.display='none';
+  var vb=document.getElementById('v-badge');if(vb){vb.textContent='--';vb.className='abadge';}
+  setVnUI('idle');
 }
-function tick(){var el=document.getElementById('mic-timer');el.style.visibility='visible';el.textContent=fmt(recSec);recSec++;}
-function fmt(s){return Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60);}
+function setVnUI(st){
+  var r=document.getElementById('mic-ring'),em=document.getElementById('mic-emoji'),lb=document.getElementById('mic-lbl');
+  if(!r)return;r.className='mic-ring';
+  if(st===true||st==='rec'){r.classList.add('rec');em.innerHTML='&#9646;&#9646;';lb.textContent='In ascolto - tocca per fermare';}
+  else if(st==='done'){r.classList.add('done');em.innerHTML='&#10003;';lb.textContent='Nota salvata';}
+  else{em.innerHTML='&#127908;';lb.textContent='Tocca per iniziare dettatura';}
+}
 
 // ── STT ───────────────────────────────────────────────────────────────────
 function initSTT() {
@@ -910,11 +918,11 @@ function handleNoteSTT(t){
 }
 
 function handleSTT(t) {
-  // ── REGISTRAZIONE AUDIO — sempre attivi se STT acceso ──
-  if(t.indexOf('makeit registra')>-1){if(!isRec||isPaused){toggleRec();}showToast('Registrazione avviata');return;}
-  if(t.indexOf('makeit pausa')>-1){if(isRec&&!isPaused){pauseRec();}showToast('Pausa');return;}
-  if(t.indexOf('makeit stop')>-1){if(isRec){stopRec();}showToast('Fermata');return;}
-  if(t.indexOf('makeit conferma')>-1){confirmRec();return;}
+  // ── NOTA VOCALE (STT) ──
+  if(t.indexOf('makeit registra')>-1){startVoiceNote();return;}
+  if(t.indexOf('makeit stop')>-1){stopVoiceNote();return;}
+  if(t.indexOf('makeit conferma')>-1){confirmVoiceNote();return;}
+  if(t.indexOf('makeit pausa')>-1){stopVoiceNote();return;}
 
   // ── NAVIGAZIONE ──
   if(t.indexOf('vai a casa')>-1||(t.indexOf('home')>-1&&t.length<10)){nav('sc-home');setNav(0);showToast('Home');return;}
@@ -1116,6 +1124,7 @@ function sendToLab() {
     id:rxId, paziente:cas.paz||'--', medico:cas.med||'--', consegna:cas.dat||'--',
     tipo:cas.tip||'--', arcata:cas.arc||'--', materiale:cas.mat||'--', colore:cas.vita||'--',
     denti:th, noteTecniche:cas.teethNote||'--', noteCliniche:cas.not||'--',
+    notaVocale:voiceConf?(voiceNoteText.trim()||'--'):'--',
     fotoRiposo:rip, fotoSorriso:sor, fotoApriBocca:boc,
     labRiposo:labR, labSorriso:labS, labApriBocca:labB,
     audio:voiceConf, status:'ricevuto', createdAt:new Date().toISOString()
