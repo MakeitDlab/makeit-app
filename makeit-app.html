@@ -514,10 +514,6 @@ try { sentList = JSON.parse(localStorage.getItem('mk_cases') || '[]'); } catch(e
 // ── BOOT ──────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', function() {
   setDate(); buildVita(); renderCaseList(); initOrient(); initSTT();
-  // Avvia STT automaticamente dopo init (hands-free)
-  setTimeout(function() {
-    if(sttRec && !sttActive) { sttActive=true; try{sttRec.start();}catch(e){} }
-  }, 1200);
   var d = new Date(); d.setDate(d.getDate()+7);
   document.getElementById('f-dat').value = d.toISOString().split('T')[0];
 });
