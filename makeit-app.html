@@ -22,15 +22,13 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
 
 /* HEADER */
 .hdr { padding: 14px 18px 10px; display: flex; align-items: center; gap: 12px; background: #0d0f14; position: sticky; top: 0; z-index: 10; }
-.hdr-center { display: flex; flex-direction: column; align-items: center; width: 100%; padding: 12px 18px 8px; background: #0d0f14; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.logo { width: 38px; height: 38px; border: 1.5px solid #C9A84C; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #C9A84C; letter-spacing: 0.3px; flex-shrink: 0; font-family: 'Courier New', monospace; }
-.hdr-main { font-size: 16px; font-weight: 800; text-align: center; }
+.hdr-center { display: flex; flex-direction: column; align-items: center; width: 100%; padding: 14px 18px 10px; background: #0d0f14; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.hdr-logo-center { flex: 1; display: flex; flex-direction: column; align-items: center; }
+.hdr-main { font-size: 15px; font-weight: 800; text-align: center; }
 .hdr-main span.gold { color: #C9A84C; }
-.hdr-sub  { font-size: 9px; color: rgba(216,221,227,0.5); letter-spacing: 2.5px; text-transform: uppercase; text-align: center; margin-top: 2px; }
+.hdr-sub  { font-size: 8px; color: rgba(216,221,227,0.45); letter-spacing: 2.5px; text-transform: uppercase; text-align: center; margin-top: 1px; }
 .back-btn { background: none; border: none; color: #C9A84C; font-size: 15px; font-weight: 600; cursor: pointer; padding: 8px 0; display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
 .back-btn::before { content: '\2190'; font-size: 18px; }
-.hdr-brand-right { margin-left: auto; text-align: right; }
-.hdr-logo-center { flex: 1; display: flex; flex-direction: column; align-items: center; }
 .step-bar { display: flex; gap: 5px; padding: 0 18px 12px; }
 .sd { height: 3px; border-radius: 2px; flex: 1; background: rgba(255,255,255,0.1); }
 .sd.done { background: #C9A84C; }
@@ -244,15 +242,11 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
 .suc-sub   { font-size: 14px; color: rgba(232,234,240,0.45); text-align: center; }
 
 /* NAV */
-.bnav { display: flex; background: #0d0f14; border-top: 1px solid rgba(255,255,255,0.08); padding: 8px 0 20px; align-items: center; }
+.bnav { display: flex; background: #0d0f14; border-top: 1px solid rgba(255,255,255,0.08); padding: 8px 0 20px; }
 .ni   { flex: 1; background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 6px 0; }
 .nicon { font-size: 22px; color: rgba(216,221,227,0.35); }
 .nlbl  { font-size: 10px; color: rgba(216,221,227,0.35); font-weight: 700; letter-spacing: 1px; }
 .ni.active .nicon, .ni.active .nlbl { color: #C9A84C; }
-.nav-brand { flex: 2; display: flex; flex-direction: column; align-items: center; gap: 1px; pointer-events: none; }
-.nav-brand-main { font-size: 13px; font-weight: 800; }
-.nav-brand-main span.gold { color: #C9A84C; }
-.nav-brand-sub { font-size: 8px; color: rgba(216,221,227,0.4); letter-spacing: 2px; text-transform: uppercase; }
 
 /* FIREBASE BADGE */
 .firebase-badge { position: fixed; top: 8px; right: 8px; background: rgba(82,196,122,0.15); border: 1px solid rgba(82,196,122,0.3); color: #52c47a; font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 10px; z-index: 9998; display: none; }
@@ -271,7 +265,11 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
 
   <!-- HOME -->
   <div id="sc-home" class="screen active">
-   <div class="home-top" style="padding-top:16px"><div class="home-g">Portale Clinico &mdash;</div><div class="home-d" id="home-date"></div></div>
+   <div class="hdr-center">
+    <div class="hdr-main">makeit<span class="gold"> DIGITAL</span></div>
+    <div class="hdr-sub">Dental Service</div>
+   </div>
+   <div class="home-top"><div class="home-g">Portale Clinico &mdash;</div><div class="home-d" id="home-date"></div></div>
    <div style="padding:20px 18px 0"><button class="btn-gold" onclick="startNew()"><span style="font-size:22px">+</span> Nuovo Caso</button></div>
    <div class="sec-lbl">Casi Recenti</div>
    <div class="case-list" id="case-list"></div>
@@ -279,7 +277,11 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
 
   <!-- FORM DATI -->
   <div id="sc-form" class="screen">
-   <div class="hdr"><button class="back-btn" onclick="nav('sc-home')">Home</button><div class="hdr-logo-center"><div class="hdr-main">makeit<span class="gold"> DIGITAL</span></div><div class="hdr-sub">Dental Service</div></div><div style="width:60px"></div></div>
+   <div class="hdr">
+    <button class="back-btn" onclick="nav('sc-home')">Home</button>
+    <div class="hdr-logo-center"><div class="hdr-main">makeit<span class="gold"> DIGITAL</span></div><div class="hdr-sub">Dental Service</div></div>
+    <div style="width:60px"></div>
+   </div>
    <div class="step-bar"><div class="sd done"></div><div class="sd cur"></div><div class="sd"></div><div class="sd"></div></div>
    <div class="fb">
     <div class="ftitle">Dati del Caso</div>
@@ -341,11 +343,18 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
 
   <!-- ACQUISIZIONI -->
   <div id="sc-acq" class="screen">
-   <div class="hdr"><button class="back-btn" onclick="nav('sc-form')">Dati</button><div class="hdr-logo-center"><div class="hdr-main">makeit<span class="gold"> DIGITAL</span></div><div class="hdr-sub">Dental Service</div></div><div style="width:60px"></div></div>
+   <div class="hdr">
+    <button class="back-btn" onclick="nav('sc-form')">Dati</button>
+    <div class="hdr-logo-center"><div class="hdr-main">makeit<span class="gold"> DIGITAL</span></div><div class="hdr-sub">Dental Service</div></div>
+    <div style="width:60px"></div>
+   </div>
    <div class="step-bar"><div class="sd done"></div><div class="sd done"></div><div class="sd cur"></div><div class="sd"></div></div>
    <div style="padding:10px 18px 6px"><div style="font-size:18px;font-weight:700">Acquisizioni</div><div style="font-size:13px;color:rgba(232,234,240,0.45);margin-top:2px">Nota vocale + Protocollo fotografico</div></div>
    <div style="margin:0 18px 4px;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.2);border-radius:9px;padding:8px 12px;font-size:11px;color:rgba(232,234,240,0.45);line-height:1.8">
     <span style="color:#C9A84C;font-weight:700">Comandi:</span> "makeit registra" &bull; "makeit pausa" &bull; "makeit stop" &bull; "makeit conferma" &bull; "avanti riepilogo" &bull; "invia al lab"
+   </div>
+   <div style="padding:4px 18px 8px">
+    <div class="stt-pill" id="stt-acq-pill" onclick="toggleSTTAcq()" style="font-size:12px;padding:7px 14px"><div class="stt-dot"></div><span id="stt-acq-lbl">Tocca per attivare comandi vocali</span></div>
    </div>
    <div class="acq-wrap">
     <!-- NOTA VOCALE -->
@@ -404,7 +413,11 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
 
   <!-- RIEPILOGO -->
   <div id="sc-recap" class="screen">
-   <div class="hdr"><button class="back-btn" onclick="nav('sc-acq')">Acquisizioni</button><div class="hdr-logo-center"><div class="hdr-main">makeit<span class="gold"> DIGITAL</span></div><div class="hdr-sub">Dental Service</div></div><div style="width:60px"></div></div>
+   <div class="hdr">
+    <button class="back-btn" onclick="nav('sc-acq')">Acquisizioni</button>
+    <div class="hdr-logo-center"><div class="hdr-main">makeit<span class="gold"> DIGITAL</span></div><div class="hdr-sub">Dental Service</div></div>
+    <div style="width:60px"></div>
+   </div>
    <div class="step-bar"><div class="sd done"></div><div class="sd done"></div><div class="sd done"></div><div class="sd cur"></div></div>
    <div style="padding:10px 18px 14px"><div style="font-size:18px;font-weight:700">Riepilogo</div><div style="font-size:13px;color:rgba(232,234,240,0.45);margin-top:2px">Verifica e invia al laboratorio</div></div>
    <div class="rb" id="recap-body"></div>
@@ -424,7 +437,6 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
 
  <nav class="bnav" id="bnav">
   <button class="ni active" id="ni0" onclick="nav('sc-home');setNav(0)"><span class="nicon">&#127968;</span><span class="nlbl">HOME</span></button>
-  <div class="nav-brand"><div class="nav-brand-main">makeit<span class="gold"> DIGITAL</span></div><div class="nav-brand-sub">Dental Service</div></div>
   <button class="ni" id="ni1" onclick="startNew();setNav(1)"><span class="nicon">+</span><span class="nlbl">NUOVO</span></button>
   <button class="ni" id="ni2" onclick="goRecap();setNav(2)"><span class="nicon">&#128228;</span><span class="nlbl">INVIA</span></button>
  </nav>
@@ -585,15 +597,6 @@ function nav(id) {
       try { updateInstr(); } catch(e) {}
       try { updateScanLine(); } catch(e) {}
       try { updateBadge(); } catch(e) {}
-      // Riavvia STT se era già attivo (permesso già concesso)
-      if (sttRec && sttActive) {
-        try { sttRec.stop(); } catch(e) {}
-        setTimeout(function() { try { sttRec.start(); } catch(e) {} }, 300);
-      } else if (sttRec && !sttActive) {
-        // Prova ad avviare silenziosamente se permesso già dato
-        sttActive = true;
-        try { sttRec.start(); } catch(e) { sttActive = false; }
-      }
     }, 80);
   }
 }
@@ -805,13 +808,21 @@ function startRec(){
 }
 function pauseRec(){if(mediaRec&&mediaRec.state==='recording')mediaRec.pause();isPaused=true;clearInterval(recInt);setMicUI('pau');}
 function resumeRec(){if(mediaRec&&mediaRec.state==='paused')mediaRec.resume();isPaused=false;recInt=setInterval(tick,1000);setMicUI('rec');}
-function stopRec(){if(mediaRec&&(mediaRec.state==='recording'||mediaRec.state==='paused'))mediaRec.stop();isRec=false;isPaused=false;clearInterval(recInt);setMicUI('stopped');}
+function stopRec(){
+  if(mediaRec&&(mediaRec.state==='recording'||mediaRec.state==='paused'))mediaRec.stop();
+  isRec=false;isPaused=false;clearInterval(recInt);setMicUI('stopped');
+  // Mostra sempre i bottoni dopo stop
+  document.getElementById('audio-btns').style.display='flex';
+}
 function confirmRec(){
-  if(!voiceBlob&&!isRec){showToast('Nessuna registrazione da confermare');return;}
-  if(isRec){stopRec();}
+  if(isRec){stopRec();setTimeout(function(){doConfirm();},600);return;}
+  doConfirm();
+}
+function doConfirm(){
   voiceConf=true;
   setMicUI('done');
   var vb=document.getElementById('v-badge');if(vb){vb.className='abadge ok';vb.textContent='Salvata';}
+  document.getElementById('audio-btns').style.display='none';
   showToast('Nota vocale salvata');
 }
 function resetRec(){voiceBlob=null;voiceConf=false;isRec=false;isPaused=false;clearInterval(recInt);recSec=0;resetRecUI();}
@@ -851,6 +862,22 @@ function toggleSTT(){
   if(sttActive){sttActive=false;noteSTTActive=false;try{sttRec.stop();}catch(e){}setSttUI(false);}
   else{sttActive=true;noteSTTActive=false;try{sttRec.start();}catch(e){}showToast('Ascolto vocale attivato');}
 }
+function toggleSTTAcq(){
+  if(!sttRec){showToast('STT non disponibile');return;}
+  if(sttActive){
+    sttActive=false;noteSTTActive=false;
+    try{sttRec.stop();}catch(e){}
+    var p=document.getElementById('stt-acq-pill');var l=document.getElementById('stt-acq-lbl');
+    if(p)p.className='stt-pill';if(l)l.textContent='Tocca per attivare comandi vocali';
+    showToast('Comandi vocali disattivati');
+  } else {
+    sttActive=true;noteSTTActive=false;
+    try{sttRec.start();}catch(e){}
+    var p2=document.getElementById('stt-acq-pill');var l2=document.getElementById('stt-acq-lbl');
+    if(p2)p2.className='stt-pill lst';if(l2)l2.textContent='In ascolto — parla liberamente';
+    showToast('Comandi vocali attivati');
+  }
+}
 function toggleNoteSTT(){
   if(!sttRec){showToast('STT non disponibile');return;}
   if(noteSTTActive){
@@ -867,6 +894,10 @@ function setSttUI(on){
   var pill=document.getElementById('stt-pill');var lbl=document.getElementById('stt-lbl');
   if(pill)pill.className='stt-pill'+(on&&!noteSTTActive?' lst':'');
   if(lbl)lbl.textContent=on&&!noteSTTActive?'In ascolto...':'Tocca per attivare ascolto vocale';
+  // Sincronizza anche pill acquisizioni
+  var p2=document.getElementById('stt-acq-pill');var l2=document.getElementById('stt-acq-lbl');
+  if(p2)p2.className='stt-pill'+(on?' lst':'');
+  if(l2)l2.textContent=on?'In ascolto — parla liberamente':'Tocca per attivare comandi vocali';
 }
 function setSttNoteUI(on){
   var pill=document.getElementById('stt-note-pill');var lbl=document.getElementById('stt-note-lbl');
