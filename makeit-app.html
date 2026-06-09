@@ -193,9 +193,9 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
 .opt-unlock  { display: inline-block; padding: 10px 24px; background: rgba(201,168,76,0.13); border: 1px solid rgba(201,168,76,0.28); border-radius: 20px; color: #C9A84C; font-size: 13px; font-weight: 700; cursor: pointer; }
 
 /* CAMERA */
-#cam-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; flex-direction: column; }
-#cam-overlay.open { display: flex; }
-#cam-video   { width: 100%; flex: 1; object-fit: cover; }
+#cam-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; }
+#cam-overlay.open { display: block; }
+#cam-video   { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .cam-ui      { position: absolute; inset: 0; pointer-events: none; }
 .cam-frame   { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-58%); width: 72%; height: 68%; border: 2px solid rgba(201,168,76,0.75); border-radius: 50% 50% 45% 45% / 40% 40% 35% 35%; box-shadow: 0 0 0 9999px rgba(0,0,0,0.48); }
 .cc-tl, .cc-tr, .cc-bl, .cc-br { position: absolute; width: 22px; height: 22px; border-color: #C9A84C; border-style: solid; }
@@ -457,7 +457,7 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
   <button class="cam-shutter" id="cam-sh" onclick="snapPhoto()"></button>
   <button class="cam-flip" onclick="flipCam()">&#128260;</button>
  </div>
- <canvas id="cc"></canvas>
+ <canvas id="cc" style="position:absolute;top:-9999px;left:-9999px;visibility:hidden"></canvas>
 </div>
 
 <div class="toast" id="toast"></div>
