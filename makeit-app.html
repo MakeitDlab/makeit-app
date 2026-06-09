@@ -236,8 +236,11 @@ canvas#cc     { display: none; }
    <div class="step-bar"><div class="sd done"></div><div class="sd cur"></div><div class="sd"></div><div class="sd"></div></div>
    <div class="fb">
     <div class="ftitle">Dati del Caso</div>
-    <div class="fsub">Di' <strong style="color:#C9A84C">"Makeit registra"</strong> per compilare a voce, o scrivi.</div>
-    <div class="stt-pill" id="stt-pill" onclick="toggleSTT()"><div class="stt-dot"></div><span id="stt-lbl">Tocca per attivare ascolto vocale</span></div>
+    <div class="fsub">Di' frasi cliniche naturali: <strong style="color:#C9A84C">"corona in zirconio sul 16"</strong> o scrivi manualmente.</div>
+    <div style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.18);border-radius:9px;padding:8px 12px;font-size:11px;color:rgba(232,234,240,0.45);line-height:1.9">
+     <span style="color:#C9A84C;font-weight:700">Comandi:</span> "paziente [nome]" &bull; "medico [nome]" &bull; "corona in zirconio sul 16" &bull; "consegna 20 gennaio" &bull; "colore A tre" &bull; "nota [testo]" &bull; "avanti" per andare alle acquisizioni
+    </div>
+    <div class="stt-pill" id="stt-pill" onclick="toggleSTT()" style="font-size:12px;padding:7px 14px"><div class="stt-dot"></div><span id="stt-lbl">Tocca per attivare ascolto vocale</span></div>
     <div class="tr-live" id="tr-live" style="display:none"></div>
     <div class="fg"><div class="flbl">Nome Paziente *</div><input class="fi" id="f-paz" type="text" placeholder="Es. Mario Rossi" autocomplete="off"></div>
     <div class="row2">
@@ -280,16 +283,6 @@ canvas#cc     { display: none; }
       <div class="vita-sel-bar"><div class="vswatch" id="vswatch" style="background:#e8e4d8"></div><div><div class="vsel-t" id="vsel-t">--</div><div class="vsel-s" id="vsel-s">Tocca uno shade</div></div></div>
      </div>
     </div>
-    <div class="fg"><div class="flbl">Scansioni STL</div>
-     <div class="upload-zone" id="stl-zone" onclick="document.getElementById('stl-in').click()">
-      <div style="font-size:26px;margin-bottom:5px">&#129463;</div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:2px">Carica file STL</div>
-      <div style="font-size:11px;color:rgba(232,234,240,0.45)">Superiore / inferiore / occlusione</div>
-      <div class="unames" id="stl-nm"></div>
-     </div>
-     <input type="file" id="stl-in" class="hidden" accept=".stl,.obj,.ply" multiple onchange="onSTL(event)">
-    </div>
-    <div class="fg"><div class="flbl">CBCT / DICOM Link</div><input class="fi" id="f-dic" type="url" placeholder="https://drive.google.com/..."><div style="font-size:11px;color:rgba(232,234,240,0.45);margin-top:5px">Carica CBCT dal PC su Drive e incolla il link.</div></div>
     <div class="fg"><div class="flbl">Note cliniche</div><textarea class="fta" id="f-not" placeholder="Indicazioni, urgenze, istruzioni speciali..."></textarea></div>
     <button class="btn-gold" onclick="goAcq()">Avanti &mdash; Acquisizioni</button>
    </div>
@@ -299,6 +292,9 @@ canvas#cc     { display: none; }
    <div class="hdr"><button class="back-btn" onclick="nav('sc-form')">Dati</button><div class="hdr-brand-right"><div class="hdr-main" style="font-size:14px">MakeitDigital</div><div class="hdr-sub">Dental Service</div></div></div>
    <div class="step-bar"><div class="sd done"></div><div class="sd done"></div><div class="sd cur"></div><div class="sd"></div></div>
    <div style="padding:10px 18px 6px"><div style="font-size:18px;font-weight:700">Acquisizioni</div><div style="font-size:13px;color:rgba(232,234,240,0.45);margin-top:2px">Nota vocale + Protocollo fotografico</div></div>
+   <div style="margin:0 18px 4px;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.2);border-radius:9px;padding:8px 12px;font-size:11px;color:rgba(232,234,240,0.45);line-height:1.8">
+    <span style="color:#C9A84C;font-weight:700">Comandi vocali:</span> "foto" &bull; "set sorriso" &bull; "livello superiore" &bull; "avanti" &bull; "riepilogo" &bull; "makeit registra" &bull; "makeit conferma"
+   </div>
    <div class="acq-wrap">
     <div class="acq-card">
      <div class="acq-hdr"><span class="acq-icon">&#127897;</span><div><div class="acq-t">Nota Vocale</div><div class="acq-s">Descrizione clinica del caso</div></div><div class="abadge" id="v-badge">--</div></div>
@@ -518,6 +514,10 @@ try { sentList = JSON.parse(localStorage.getItem('mk_cases') || '[]'); } catch(e
 // ── BOOT ──────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', function() {
   setDate(); buildVita(); renderCaseList(); initOrient(); initSTT();
+  // Avvia STT automaticamente dopo init (hands-free)
+  setTimeout(function() {
+    if(sttRec && !sttActive) { sttActive=true; try{sttRec.start();}catch(e){} }
+  }, 1200);
   var d = new Date(); d.setDate(d.getDate()+7);
   document.getElementById('f-dat').value = d.toISOString().split('T')[0];
 });
@@ -718,14 +718,51 @@ function initSTT() {
   };
   sttRec.onerror=function(){setSttUI(false);};
 }
-function toggleSTT(){if(sttActive){sttActive=false;try{sttRec.stop();}catch(e){}setSttUI(false);}else{sttActive=true;try{sttRec.start();}catch(e){}}}
-function setSttUI(on){document.getElementById('stt-pill').className='stt-pill'+(on?' lst':'');document.getElementById('stt-lbl').textContent=on?'In ascolto...':'Tocca per attivare ascolto vocale';}
+function toggleSTT(){
+  if(!sttRec){showToast('STT non disponibile');return;}
+  if(sttActive){sttActive=false;try{sttRec.stop();}catch(e){}setSttUI(false);showToast('Ascolto vocale disattivato');}
+  else{sttActive=true;try{sttRec.start();}catch(e){}showToast('Ascolto vocale attivato');}
+}
+function setSttUI(on){
+  var pill=document.getElementById('stt-pill');
+  var lbl=document.getElementById('stt-lbl');
+  if(pill){pill.className='stt-pill'+(on?' lst':'');pill.style.fontSize='12px';pill.style.padding='7px 14px';}
+  if(lbl){lbl.textContent=on?'&#127908; In ascolto — parla liberamente':'Tocca per attivare ascolto vocale';}
+}
 
 function handleSTT(t) {
-  if(t.indexOf('makeit registra')>-1){if(!isRec||isPaused){toggleRec();showToast('Registrazione avviata');}return;}
-  if(t.indexOf('makeit pausa')>-1){if(isRec&&!isPaused){pauseRec();showToast('Pausa');}return;}
-  if(t.indexOf('makeit stop')>-1){if(isRec){stopRec();showToast('Fermata');}return;}
-  if(t.indexOf('makeit conferma')>-1){confirmRec();return;}
+  // ── COMANDI REGISTRAZIONE AUDIO ──
+  if(t.indexOf('makeit registra')>-1||t.indexOf('avvia registrazione')>-1||t.indexOf('inizia registrazione')>-1){if(!isRec||isPaused){toggleRec();showToast('Registrazione avviata');}return;}
+  if(t.indexOf('makeit pausa')>-1||t.indexOf('pausa registrazione')>-1){if(isRec&&!isPaused){pauseRec();showToast('Pausa');}return;}
+  if(t.indexOf('makeit stop')>-1||t.indexOf('ferma registrazione')>-1||t.indexOf('stop registrazione')>-1){if(isRec){stopRec();showToast('Fermata');}return;}
+  if(t.indexOf('makeit conferma')>-1||t.indexOf('conferma nota')>-1||t.indexOf('salva nota')>-1){confirmRec();return;}
+  if(t.indexOf('riregistra')>-1||t.indexOf('ricomincia')>-1){resetRec();return;}
+
+  // ── NAVIGAZIONE ──
+  if(t.indexOf('vai a casa')>-1||t.indexOf('torna home')>-1||t.indexOf('home')>-1&&t.length<10){nav('sc-home');setNav(0);showToast('Home');return;}
+  if(t.indexOf('nuovo caso')>-1||t.indexOf('crea caso')>-1||t.indexOf('nuovo')>-1&&t.length<10){startNew();showToast('Nuovo caso');return;}
+  if(t.indexOf('avanti acquisizioni')>-1||t.indexOf('acquisizioni')>-1||t.indexOf('avanti')>-1&&t.length<10){goAcq();return;}
+  if(t.indexOf('riepilogo')>-1||t.indexOf('vai al riepilogo')>-1||t.indexOf('invia')>-1&&t.length<8){goRecap();return;}
+  if(t.indexOf('torna ai dati')>-1||t.indexOf('torna dati')>-1){nav('sc-form');setNav(1);showToast('Dati');return;}
+  if(t.indexOf('torna alle acquisizioni')>-1){nav('sc-acq');setNav(1);showToast('Acquisizioni');return;}
+  if(t.indexOf('invia al lab')>-1||t.indexOf('manda al lab')>-1||t.indexOf('invia laboratorio')>-1){sendToLab();return;}
+
+  // ── FOTO PROTOCOLLO ──
+  if(t.indexOf('scatta foto')>-1||t.indexOf('foto')>-1&&t.length<8||t.indexOf('scatta')>-1&&t.length<10){
+    var btn=document.getElementById('cam-btn');if(btn&&!btn.disabled){btn.click();}return;}
+  if(t.indexOf('set riposo')>-1||t.indexOf('riposo')>-1&&t.length<10){switchSet(0);showToast('Set Riposo');return;}
+  if(t.indexOf('set sorriso')>-1||t.indexOf('sorriso')>-1&&t.length<10){switchSet(1);showToast('Set Sorriso');return;}
+  if(t.indexOf('apri bocca')>-1&&t.length<14){switchSet(2);showToast('Set Apri bocca');return;}
+  if(t.indexOf('livello superiore')>-1){jumpLevel(0);showToast('Livello Superiore');return;}
+  if(t.indexOf('livello centrale')>-1){jumpLevel(1);showToast('Livello Centrale');return;}
+  if(t.indexOf('livello inferiore')>-1){jumpLevel(2);showToast('Livello Inferiore');return;}
+  if(t.indexOf('attiva riposo')>-1){activateLab('R');showToast('Labiale Riposo attivato');return;}
+  if(t.indexOf('attiva sorriso')>-1){activateLab('S');showToast('Labiale Sorriso attivato');return;}
+  if(t.indexOf('attiva bocca')>-1||t.indexOf('attiva apri bocca')>-1){activateLab('B');showToast('Labiale Apri bocca attivato');return;}
+
+  // ── FOTOCAMERA ──
+  if(t.indexOf('annulla foto')>-1||t.indexOf('chiudi fotocamera')>-1){closeCam();return;}
+  if(t.indexOf('gira fotocamera')>-1||t.indexOf('inverti camera')>-1){flipCam();return;}
   if(!isRec){
     var tNorm=t
       .replace(/\ba\s+uno\b/gi,'A1').replace(/\ba\s+due\b/gi,'A2')
@@ -755,7 +792,9 @@ function handleSTT(t) {
       buildFDIGrid();renderSelectedTeeth();showToast(dentiTrovati.length+' dent'+(dentiTrovati.length===1?'e':'i')+' aggiunti');
     }
     if(dentiTrovati.length===0){if(t.indexOf('superiore')>-1&&t.indexOf('inferior')===-1){var ea2=document.getElementById('f-arc');if(ea2)ea2.value='Superiore';}else if(t.indexOf('inferior')>-1&&t.indexOf('superior')===-1){var ea3=document.getElementById('f-arc');if(ea3)ea3.value='Inferiore';}else if(t.indexOf('entrambe')>-1){var ea4=document.getElementById('f-arc');if(ea4)ea4.value='Entrambe';}}
-    var nM=t.match(/nota\s+(.+)/);if(nM){var en=document.getElementById('f-not');if(en){en.value+=(en.value?'\n':'')+cap(nM[1]);showToast('Nota aggiunta');}}
+    // Note cliniche - varie keyword
+    var nM=t.match(/(?:nota|note|aggiungi nota|clinica|osservazione)\s+(.+)/);
+    if(nM){var en=document.getElementById('f-not');if(en){en.value+=(en.value?'\n':'')+cap(nM[1].trim());showToast('Nota clinica aggiunta');}}
   }
 }
 function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
@@ -829,7 +868,7 @@ function buildRecap(){
   var th='--';if(cas.teeth&&cas.teeth.length){var ta=[];for(var i=0;i<cas.teeth.length;i++)ta.push(cas.teeth[i].num+': '+cas.teeth[i].type);th=ta.join(', ');}
   var body=document.getElementById('recap-body');body.innerHTML='';
   var c1=el('div','rc');c1.appendChild(el('div','rl','Dati Caso'));c1.appendChild(rrow('Paziente',cas.paz||'--'));c1.appendChild(rrow('Medico',cas.med||'--'));c1.appendChild(rrow('Consegna',df));c1.appendChild(rrow('Tipo lavoro',cas.tip||'--'));c1.appendChild(rrow('Denti',th));c1.appendChild(rrow('Arcata',cas.arc||'--'));c1.appendChild(rrow('Materiale',cas.mat||'--'));c1.appendChild(rrow('Colore VITA',cas.vita||'--',cas.vita?true:null));c1.appendChild(rrow('Note tecniche',cas.teethNote||'--'));body.appendChild(c1);
-  var c2=el('div','rc');c2.appendChild(el('div','rl','File Clinici'));c2.appendChild(rrow('STL',stlFiles.length?stlFiles.length+' file':null,stlFiles.length?true:false));c2.appendChild(rrow('CBCT',cas.dic?'link inserito':null,cas.dic?true:false));body.appendChild(c2);
+  // File clinici gestiti dal portale lab PC
   var c3=el('div','rc');c3.appendChild(el('div','rl','Acquisizioni'));c3.appendChild(rrow('Nota vocale',voiceConf?'Confermata':null,voiceConf?true:false));c3.appendChild(rrow('Riposo (obbl.)',rip===30?'30/30':rip+'/30',rip===30?true:null));c3.appendChild(rrow('Sorriso',sor===30?'30/30':sor+'/30 opz.',sor===30?true:null));c3.appendChild(rrow('Apri bocca',boc===30?'30/30':boc+'/30 opz.',boc===30?true:null));c3.appendChild(rrow('Lab. Riposo',labR===3?'3/3':labR+'/3 opz.',labR===3?true:null));c3.appendChild(rrow('Lab. Sorriso',labS===3?'3/3':labS+'/3 opz.',labS===3?true:null));c3.appendChild(rrow('Lab. Apri bocca',labB===3?'3/3':labB+'/3 opz.',labB===3?true:null));body.appendChild(c3);
 }
 
@@ -844,7 +883,7 @@ function sendToLab() {
     id:rxId, paziente:cas.paz||'--', medico:cas.med||'--', consegna:cas.dat||'--',
     tipo:cas.tip||'--', arcata:cas.arc||'--', materiale:cas.mat||'--', colore:cas.vita||'--',
     denti:th, noteTecniche:cas.teethNote||'--', noteCliniche:cas.not||'--',
-    stl:cas.stlN||'--', cbct:cas.dic||'--',
+    stl:'gestito da portale', cbct:'gestito da portale',
     fotoRiposo:rip, fotoSorriso:sor, fotoApriBocca:boc,
     labRiposo:labR, labSorriso:labS, labApriBocca:labB,
     audio:voiceConf, status:'ricevuto',
