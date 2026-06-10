@@ -472,6 +472,7 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
    <circle id="lvl-dot" cx="50" cy="118" r="1.2" fill="none" stroke="#52c47a" stroke-width="0.35"/>
   </svg>
   <div class="cam-lvl-badge"><div class="clb-lbl">Livello</div><div class="clb-val" id="clb-val">SUPERIORE</div></div>
+  <div id="orient-btn" style="position:absolute;top:52px;left:16px;background:rgba(0,0,0,0.5);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:5px 10px;font-size:10px;color:#C9A84C;cursor:pointer;pointer-events:auto;font-family:'Courier New',monospace" onclick="askOrient()">&#9711; Attiva livella</div>
  </div>
  <div class="cam-bottom">
   <button class="cam-cancel" onclick="closeCam()">Annulla</button>
@@ -1172,12 +1173,13 @@ function openCam(mode,labSetId){
   camMode=mode||'main';if(labSetId)camLabSet=labSetId;
   if(camMode==='main'&&curPh>=30){showToast('Set completato');return;}
   if(camMode==='lab'&&labPh[camLabSet]>=3){showToast('Set completato');return;}
-  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:3024},height:{ideal:4032}}}).then(function(s){
+  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},advanced:[{zoom:2.4}]}}).then(function(s){
     if(camStream)camStream.getTracks().forEach(function(t){t.stop();});camStream=s;
     var track=s.getVideoTracks()[0];try{var caps=track.getCapabilities&&track.getCapabilities();if(caps&&caps.zoom)track.applyConstraints({advanced:[{zoom:2.4}]});}catch(e){}
     document.getElementById('cam-video').srcObject=s;
     document.getElementById('cam-overlay').classList.add('open');
     var fb=document.getElementById('fb-badge');if(fb)fb.style.display='none';
+    requestOrientPermission();
     updateCamGuide();updateScanLine();
   }).catch(function(){showToast('Fotocamera non disponibile');});
 }
@@ -1201,25 +1203,44 @@ function snapPhoto(){
   showToast('Foto '+totalPh()+' acquisita');var sh2=document.getElementById('cam-sh');sh2.style.background='#aaa';setTimeout(function(){sh2.style.background='#fff';},90);
 }
 function initOrient(){
-  window.addEventListener('deviceorientation',function(e){
-    var g=e.gamma||0;
-    var lvlLine=document.getElementById('lvl-line');
-    var lvlDot=document.getElementById('lvl-dot');
-    if(!lvlLine||!lvlDot)return;
-    var angle=Math.max(-30,Math.min(30,g));
-    var rad=angle*Math.PI/180;
-    var cx=50,cy=118,len=20;
-    var dx=Math.cos(rad)*len;
-    var dy=Math.sin(rad)*len;
-    lvlLine.setAttribute('x1',(cx-dx).toFixed(2));
-    lvlLine.setAttribute('y1',(cy-dy).toFixed(2));
-    lvlLine.setAttribute('x2',(cx+dx).toFixed(2));
-    lvlLine.setAttribute('y2',(cy+dy).toFixed(2));
-    var color=Math.abs(angle)<3?'#52c47a':Math.abs(angle)<9?'#C9A84C':'#e05252';
-    lvlLine.setAttribute('stroke',color);
-    lvlDot.setAttribute('stroke',color);
-  });
+  function startOrient(){
+    window.addEventListener('deviceorientation',function(e){
+      var g=e.gamma||0;
+      var lvlLine=document.getElementById('lvl-line');
+      var lvlDot=document.getElementById('lvl-dot');
+      if(!lvlLine||!lvlDot)return;
+      var angle=Math.max(-30,Math.min(30,g));
+      var rad=angle*Math.PI/180;
+      var cx=50,cy=118,len=20;
+      var dx=Math.cos(rad)*len;
+      var dy=Math.sin(rad)*len;
+      lvlLine.setAttribute('x1',(cx-dx).toFixed(2));
+      lvlLine.setAttribute('y1',(cy-dy).toFixed(2));
+      lvlLine.setAttribute('x2',(cx+dx).toFixed(2));
+      lvlLine.setAttribute('y2',(cy+dy).toFixed(2));
+      var color=Math.abs(angle)<3?'#52c47a':Math.abs(angle)<9?'#C9A84C':'#e05252';
+      lvlLine.setAttribute('stroke',color);
+      lvlDot.setAttribute('stroke',color);
+    });
+  }
+  // Non-iOS: avvia subito
+  if(typeof DeviceOrientationEvent === 'undefined' || typeof DeviceOrientationEvent.requestPermission !== 'function'){
+    startOrient();
+  }
+  // iOS: espone requestOrientPermission per chiamata da gesto utente
+  window._startOrient = startOrient;
 }
+function askOrient(){
+  var btn=document.getElementById('orient-btn');
+  if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+    DeviceOrientationEvent.requestPermission().then(function(r){
+      if(r==='granted'){if(window._startOrient){window._startOrient();window._startOrient=null;}if(btn)btn.style.display='none';}
+    }).catch(function(){if(window._startOrient){window._startOrient();window._startOrient=null;}if(btn)btn.style.display='none';});
+  } else {
+    if(window._startOrient){window._startOrient();window._startOrient=null;}if(btn)btn.style.display='none';
+  }
+}
+function requestOrientPermission(){ askOrient(); }
 
 // ── RECAP ─────────────────────────────────────────────────────────────────
 function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
