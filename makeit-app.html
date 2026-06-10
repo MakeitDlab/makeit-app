@@ -438,43 +438,38 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
    <div class="co-hint" id="co-hint">Camera altezza fronte</div>
   </div>
   <div class="cam-zoom-b">2.4x</div>
-  <!-- SVG overlay: ovale + angoli + livella + linea scansione -->
-  <svg class="cam-svg" id="cam-svg-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
-   <!-- Maschera ovale: centrata con margine superiore per istruzioni -->
+  <!-- SVG overlay: viewBox 9:16 = proporzione iPhone, no stretching -->
+  <svg class="cam-svg" id="cam-svg-overlay" viewBox="0 0 100 178" preserveAspectRatio="xMidYMid slice">
    <defs>
     <mask id="oval-cut">
-     <rect width="100" height="100" fill="white"/>
-     <ellipse id="cam-oval" cx="50" cy="56" rx="36" ry="34" fill="black"/>
+     <rect width="100" height="178" fill="white"/>
+     <ellipse id="cam-oval" cx="50" cy="96" rx="36" ry="52" fill="black"/>
     </mask>
    </defs>
-   <rect width="100" height="100" fill="rgba(0,0,0,0.46)" mask="url(#oval-cut)"/>
-   <!-- Ovale oro -->
-   <ellipse id="cam-oval-border" cx="50" cy="56" rx="36" ry="34" fill="none" stroke="rgba(201,168,76,0.78)" stroke-width="0.5"/>
+   <rect width="100" height="178" fill="rgba(0,0,0,0.46)" mask="url(#oval-cut)"/>
+   <ellipse id="cam-oval-border" cx="50" cy="96" rx="36" ry="52" fill="none" stroke="rgba(201,168,76,0.78)" stroke-width="0.4"/>
    <!-- Angoli cornice -->
-   <line x1="14" y1="22" x2="14" y2="27" stroke="#C9A84C" stroke-width="0.7" stroke-linecap="round"/>
-   <line x1="14" y1="22" x2="19" y2="22" stroke="#C9A84C" stroke-width="0.7" stroke-linecap="round"/>
-   <line x1="86" y1="22" x2="86" y2="27" stroke="#C9A84C" stroke-width="0.7" stroke-linecap="round"/>
-   <line x1="86" y1="22" x2="81" y2="22" stroke="#C9A84C" stroke-width="0.7" stroke-linecap="round"/>
-   <line x1="14" y1="90" x2="14" y2="85" stroke="#C9A84C" stroke-width="0.7" stroke-linecap="round"/>
-   <line x1="14" y1="90" x2="19" y2="90" stroke="#C9A84C" stroke-width="0.7" stroke-linecap="round"/>
-   <line x1="86" y1="90" x2="86" y2="85" stroke="#C9A84C" stroke-width="0.7" stroke-linecap="round"/>
-   <line x1="86" y1="90" x2="81" y2="90" stroke="#C9A84C" stroke-width="0.7" stroke-linecap="round"/>
-   <!-- Linea scansione livello (posizione dinamica per livello) -->
-   <line id="cam-scan-svg" x1="20" y1="45" x2="80" y2="45" stroke="rgba(201,168,76,0.35)" stroke-width="0.4" stroke-dasharray="1.5,2"/>
-   <!-- Livella: binario fisso -->
-   <line x1="28" y1="62" x2="72" y2="62" stroke="rgba(255,255,255,0.18)" stroke-width="0.4"/>
-   <!-- Tacche livella -->
-   <line x1="28" y1="60" x2="28" y2="64" stroke="rgba(255,255,255,0.18)" stroke-width="0.35"/>
-   <line x1="38" y1="61" x2="38" y2="63" stroke="rgba(255,255,255,0.14)" stroke-width="0.35"/>
-   <line x1="50" y1="59.5" x2="50" y2="64.5" stroke="rgba(201,168,76,0.4)" stroke-width="0.5"/>
-   <line x1="62" y1="61" x2="62" y2="63" stroke="rgba(255,255,255,0.14)" stroke-width="0.35"/>
-   <line x1="72" y1="60" x2="72" y2="64" stroke="rgba(255,255,255,0.18)" stroke-width="0.35"/>
-   <!-- Punto centro -->
-   <circle cx="50" cy="62" r="1.4" fill="rgba(255,255,255,0.22)"/>
-   <!-- Linea livella rotante -->
-   <line id="lvl-line" x1="30" y1="62" x2="70" y2="62" stroke="#52c47a" stroke-width="0.8" stroke-linecap="round"/>
-   <!-- Cerchio centro livella -->
-   <circle id="lvl-dot" cx="50" cy="62" r="1.8" fill="none" stroke="#52c47a" stroke-width="0.7"/>
+   <line x1="14" y1="44" x2="14" y2="52" stroke="#C9A84C" stroke-width="0.6" stroke-linecap="round"/>
+   <line x1="14" y1="44" x2="22" y2="44" stroke="#C9A84C" stroke-width="0.6" stroke-linecap="round"/>
+   <line x1="86" y1="44" x2="86" y2="52" stroke="#C9A84C" stroke-width="0.6" stroke-linecap="round"/>
+   <line x1="86" y1="44" x2="78" y2="44" stroke="#C9A84C" stroke-width="0.6" stroke-linecap="round"/>
+   <line x1="14" y1="148" x2="14" y2="140" stroke="#C9A84C" stroke-width="0.6" stroke-linecap="round"/>
+   <line x1="14" y1="148" x2="22" y2="148" stroke="#C9A84C" stroke-width="0.6" stroke-linecap="round"/>
+   <line x1="86" y1="148" x2="86" y2="140" stroke="#C9A84C" stroke-width="0.6" stroke-linecap="round"/>
+   <line x1="86" y1="148" x2="78" y2="148" stroke="#C9A84C" stroke-width="0.6" stroke-linecap="round"/>
+   <!-- Linea scansione dinamica per livello -->
+   <line id="cam-scan-svg" x1="22" y1="78" x2="78" y2="78" stroke="rgba(201,168,76,0.3)" stroke-width="0.25" stroke-dasharray="1.5,2.5"/>
+   <!-- Livella binario fisso sottile -->
+   <line x1="30" y1="118" x2="70" y2="118" stroke="rgba(255,255,255,0.15)" stroke-width="0.22"/>
+   <line x1="30" y1="116.5" x2="30" y2="119.5" stroke="rgba(255,255,255,0.15)" stroke-width="0.22"/>
+   <line x1="40" y1="117" x2="40" y2="119" stroke="rgba(255,255,255,0.12)" stroke-width="0.22"/>
+   <line x1="50" y1="116" x2="50" y2="120" stroke="rgba(201,168,76,0.35)" stroke-width="0.28"/>
+   <line x1="60" y1="117" x2="60" y2="119" stroke="rgba(255,255,255,0.12)" stroke-width="0.22"/>
+   <line x1="70" y1="116.5" x2="70" y2="119.5" stroke="rgba(255,255,255,0.15)" stroke-width="0.22"/>
+   <circle cx="50" cy="118" r="0.7" fill="rgba(255,255,255,0.2)"/>
+   <!-- Linea livella rotante sottile -->
+   <line id="lvl-line" x1="30" y1="118" x2="70" y2="118" stroke="#52c47a" stroke-width="0.4" stroke-linecap="round"/>
+   <circle id="lvl-dot" cx="50" cy="118" r="1.2" fill="none" stroke="#52c47a" stroke-width="0.35"/>
   </svg>
   <div class="cam-lvl-badge"><div class="clb-lbl">Livello</div><div class="clb-val" id="clb-val">SUPERIORE</div></div>
  </div>
@@ -1153,7 +1148,7 @@ function buildThumbs(){
 function updateLvl(){for(var lv=0;lv<3;lv++){var e=document.getElementById('lv'+lv);if(!e)return;var cnt=lvlCount(curSet,lv);document.getElementById('lc'+lv).textContent=cnt+'/10';e.className='lvl-block'+(lv===curLevel?' active':'')+(cnt===10?' dnlv':'');}}
 function updateInstr(){var bi=document.getElementById('instr-badge');if(!bi)return;var li=curPh-(curLevel*10);var lv=LVL[curLevel];var sh=lv.shots[Math.min(li,lv.shots.length-1)];bi.textContent=sh.b;document.getElementById('instr-txt').textContent=sh.t;document.getElementById('instr-hint').textContent=sh.h;document.getElementById('dummy-guide').textContent=DUMMY[curLevel]||'';}
 function updateBadge(){var pb=document.getElementById('ph-badge');if(!pb)return;var rip=setCount(0);pb.textContent=totalPh()+' foto';pb.className='abadge'+(rip===30?' ok':'');}
-function updateScanLine(){var sl=document.getElementById('cam-scan-svg');var cv=document.getElementById('clb-val');var lv=LVL[curLevel]||LVL[0];if(cv)cv.textContent=lv.clb;if(!sl)return;var scanY=curLevel===0?40:curLevel===1?55:70;sl.setAttribute('y1',scanY);sl.setAttribute('y2',scanY);}
+function updateScanLine(){var sl=document.getElementById('cam-scan-svg');var cv=document.getElementById('clb-val');var lv=LVL[curLevel]||LVL[0];if(cv)cv.textContent=lv.clb;if(!sl)return;var scanY=curLevel===0?70:curLevel===1?96:122;sl.setAttribute('y1',scanY);sl.setAttribute('y2',scanY);}
 
 // ── LAB SETS ──────────────────────────────────────────────────────────────
 function activateLab(setId){
@@ -1213,7 +1208,7 @@ function initOrient(){
     if(!lvlLine||!lvlDot)return;
     var angle=Math.max(-30,Math.min(30,g));
     var rad=angle*Math.PI/180;
-    var cx=50,cy=62,len=20;
+    var cx=50,cy=118,len=20;
     var dx=Math.cos(rad)*len;
     var dy=Math.sin(rad)*len;
     lvlLine.setAttribute('x1',(cx-dx).toFixed(2));
