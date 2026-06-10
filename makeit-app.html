@@ -472,8 +472,8 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
    <circle id="lvl-dot" cx="50" cy="118" r="1.2" fill="none" stroke="#52c47a" stroke-width="0.35"/>
   </svg>
   <div class="cam-lvl-badge"><div class="clb-lbl">Livello</div><div class="clb-val" id="clb-val">SUPERIORE</div></div>
-  <div id="orient-btn" style="position:absolute;top:52px;left:16px;background:rgba(0,0,0,0.5);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:5px 10px;font-size:10px;color:#C9A84C;cursor:pointer;pointer-events:auto;font-family:'Courier New',monospace" onclick="askOrient()">&#9711; Attiva livella</div>
  </div>
+ <div id="orient-btn" style="position:absolute;top:52px;left:16px;z-index:10000;background:rgba(0,0,0,0.6);border:1px solid rgba(201,168,76,0.4);border-radius:10px;padding:6px 12px;font-size:11px;color:#C9A84C;cursor:pointer;font-family:'Courier New',monospace" onclick="askOrient()">&#9711; Livella</div>
  <div class="cam-bottom">
   <button class="cam-cancel" onclick="closeCam()">Annulla</button>
   <button class="cam-shutter" id="cam-sh" onclick="snapPhoto()"></button>
@@ -1173,7 +1173,7 @@ function openCam(mode,labSetId){
   camMode=mode||'main';if(labSetId)camLabSet=labSetId;
   if(camMode==='main'&&curPh>=30){showToast('Set completato');return;}
   if(camMode==='lab'&&labPh[camLabSet]>=3){showToast('Set completato');return;}
-  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},advanced:[{zoom:2.4}]}}).then(function(s){
+  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing}}}).then(function(s){
     if(camStream)camStream.getTracks().forEach(function(t){t.stop();});camStream=s;
     var track=s.getVideoTracks()[0];try{var caps=track.getCapabilities&&track.getCapabilities();if(caps&&caps.zoom)track.applyConstraints({advanced:[{zoom:2.4}]});}catch(e){}
     document.getElementById('cam-video').srcObject=s;
