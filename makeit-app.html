@@ -197,23 +197,13 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
 #cam-overlay.open { display: block; }
 #cam-video   { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .cam-ui      { position: absolute; inset: 0; pointer-events: none; }
-.cam-frame   { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-58%); width: 72%; height: 68%; border: 2px solid rgba(201,168,76,0.75); border-radius: 50% 50% 45% 45% / 40% 40% 35% 35%; box-shadow: 0 0 0 9999px rgba(0,0,0,0.48); }
-.cc-tl, .cc-tr, .cc-bl, .cc-br { position: absolute; width: 22px; height: 22px; border-color: #C9A84C; border-style: solid; }
-.cc-tl { top:-1px; left:-1px; border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
-.cc-tr { top:-1px; right:-1px; border-width:3px 3px 0 0; border-radius:0 4px 0 0; }
-.cc-bl { bottom:-1px; left:-1px; border-width:0 0 3px 3px; border-radius:0 0 0 4px; }
-.cc-br { bottom:-1px; right:-1px; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
-.cam-lvl-line { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 60%; display: flex; align-items: center; gap: 4px; }
-.cam-lvl-l    { flex: 1; height: 1px; background: rgba(255,255,255,0.2); }
-.cam-lvl-c    { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid #C9A84C; background: transparent; flex-shrink: 0; }
-.cam-lvl-i    { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 20px; height: 3px; background: #C9A84C; border-radius: 2px; }
-.cam-scan-line { position: absolute; left: 14%; right: 14%; height: 2px; background: rgba(201,168,76,0.4); pointer-events: none; }
-.cam-top      { position: absolute; top: 0; left: 0; right: 0; background: linear-gradient(to bottom,rgba(0,0,0,0.9),transparent); padding: 52px 16px 36px; pointer-events: none; }
+.cam-top      { position: absolute; top: 0; left: 0; right: 0; background: linear-gradient(to bottom,rgba(0,0,0,0.9),transparent); padding: 52px 16px 28px; pointer-events: none; }
 .co-step      { font-size: 10px; color: #C9A84C; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
 .co-txt       { font-size: 15px; font-weight: 700; color: #fff; }
 .co-hint      { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; }
 .cam-zoom-b   { position: absolute; top: 52px; right: 16px; background: rgba(201,168,76,0.18); border: 1px solid rgba(201,168,76,0.28); color: #C9A84C; font-family: 'Courier New', monospace; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 14px; pointer-events: none; }
-.cam-lvl-badge { position: absolute; bottom: 140px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); border: 1px solid rgba(201,168,76,0.3); border-radius: 12px; padding: 5px 14px; pointer-events: none; }
+.cam-svg      { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.cam-lvl-badge { position: absolute; bottom: 140px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); border: 1px solid rgba(201,168,60,0.3); border-radius: 12px; padding: 5px 14px; pointer-events: none; white-space: nowrap; }
 .clb-lbl { font-size: 9px; color: rgba(216,221,227,0.5); text-align: center; letter-spacing: 1px; text-transform: uppercase; }
 .clb-val { font-size: 13px; font-weight: 700; color: #C9A84C; text-align: center; font-family: 'Courier New', monospace; }
 .cam-bottom   { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top,rgba(0,0,0,0.9),transparent); padding: 16px 30px 50px; display: flex; align-items: center; justify-content: space-between; }
@@ -307,16 +297,12 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
     <!-- SCHEDA TECNICA DENTI -->
     <div class="teeth-card">
      <div class="teeth-hdr" onclick="toggleTeeth()">
-      <div class="teeth-hdr-l"><span style="font-size:18px">&#129463;</span><div><div class="teeth-hdr-t">Scheda Tecnica Denti</div><div class="teeth-hdr-s">Schema FDI &mdash; tocca i denti per selezionarli</div></div></div>
+      <div class="teeth-hdr-l"><span style="font-size:18px">&#129463;</span><div><div class="teeth-hdr-t">Scheda Tecnica Denti</div><div class="teeth-hdr-s">Schema FDI — tap=seleziona, 2=pontic, 3=impianto, 4=libero</div></div></div>
       <span class="teeth-tog" id="teeth-tog">&#9660;</span>
      </div>
      <div class="teeth-body" id="teeth-body" style="display:none">
       <div>
-       <div class="fdi-arch-lbl">Arcata superiore</div>
-       <div class="fdi-grid" id="fdi-upper"></div>
-       <div class="fdi-sep"></div>
-       <div class="fdi-grid" id="fdi-lower"></div>
-       <div class="fdi-arch-lbl">Arcata inferiore</div>
+       <svg id="fdi-svg" width="100%" viewBox="0 0 660 140" style="display:block;margin:4px 0"></svg>
       </div>
       <div class="sel-tooth-list" id="sel-tooth-list"></div>
       <div class="fg">
@@ -446,10 +432,50 @@ body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSyste
 <div id="cam-overlay">
  <video id="cam-video" autoplay playsinline muted></video>
  <div class="cam-ui">
-  <div class="cam-top"><div class="co-step" id="co-step">SUPERIORE &mdash; FOTO 1</div><div class="co-txt" id="co-txt">Parti dal profilo sinistro</div><div class="co-hint" id="co-hint">Camera altezza fronte</div></div>
+  <div class="cam-top">
+   <div class="co-step" id="co-step">SUPERIORE &mdash; FOTO 1</div>
+   <div class="co-txt" id="co-txt">Parti dal profilo sinistro</div>
+   <div class="co-hint" id="co-hint">Camera altezza fronte</div>
+  </div>
   <div class="cam-zoom-b">2.4x</div>
-  <div class="cam-frame"><div class="cc-tl"></div><div class="cc-tr"></div><div class="cc-bl"></div><div class="cc-br"></div><div class="cam-lvl-line"><div class="cam-lvl-l"></div><div class="cam-lvl-c"></div><div class="cam-lvl-l"></div><div class="cam-lvl-i" id="lvl-cam-i"></div></div></div>
-  <div class="cam-scan-line" id="scan-line"></div>
+  <!-- SVG overlay: ovale + angoli + livella + linea scansione -->
+  <svg class="cam-svg" id="cam-svg-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
+   <!-- Maschera ovale: centrata con margine superiore per istruzioni -->
+   <defs>
+    <mask id="oval-cut">
+     <rect width="100" height="100" fill="white"/>
+     <ellipse id="cam-oval" cx="50" cy="56" rx="36" ry="34" fill="black"/>
+    </mask>
+   </defs>
+   <rect width="100" height="100" fill="rgba(0,0,0,0.46)" mask="url(#oval-cut)"/>
+   <!-- Ovale oro -->
+   <ellipse id="cam-oval-border" cx="50" cy="56" rx="36" ry="34" fill="none" stroke="rgba(201,168,76,0.78)" stroke-width="0.5"/>
+   <!-- Angoli cornice -->
+   <line x1="14" y1="22" x2="14" y2="27" stroke="#C9A84C" stroke-width="0.7" stroke-linecap="round"/>
+   <line x1="14" y1="22" x2="19" y2="22" stroke="#C9A84C" stroke-width="0.7" stroke-linecap="round"/>
+   <line x1="86" y1="22" x2="86" y2="27" stroke="#C9A84C" stroke-width="0.7" stroke-linecap="round"/>
+   <line x1="86" y1="22" x2="81" y2="22" stroke="#C9A84C" stroke-width="0.7" stroke-linecap="round"/>
+   <line x1="14" y1="90" x2="14" y2="85" stroke="#C9A84C" stroke-width="0.7" stroke-linecap="round"/>
+   <line x1="14" y1="90" x2="19" y2="90" stroke="#C9A84C" stroke-width="0.7" stroke-linecap="round"/>
+   <line x1="86" y1="90" x2="86" y2="85" stroke="#C9A84C" stroke-width="0.7" stroke-linecap="round"/>
+   <line x1="86" y1="90" x2="81" y2="90" stroke="#C9A84C" stroke-width="0.7" stroke-linecap="round"/>
+   <!-- Linea scansione livello (posizione dinamica per livello) -->
+   <line id="cam-scan-svg" x1="20" y1="45" x2="80" y2="45" stroke="rgba(201,168,76,0.35)" stroke-width="0.4" stroke-dasharray="1.5,2"/>
+   <!-- Livella: binario fisso -->
+   <line x1="28" y1="62" x2="72" y2="62" stroke="rgba(255,255,255,0.18)" stroke-width="0.4"/>
+   <!-- Tacche livella -->
+   <line x1="28" y1="60" x2="28" y2="64" stroke="rgba(255,255,255,0.18)" stroke-width="0.35"/>
+   <line x1="38" y1="61" x2="38" y2="63" stroke="rgba(255,255,255,0.14)" stroke-width="0.35"/>
+   <line x1="50" y1="59.5" x2="50" y2="64.5" stroke="rgba(201,168,76,0.4)" stroke-width="0.5"/>
+   <line x1="62" y1="61" x2="62" y2="63" stroke="rgba(255,255,255,0.14)" stroke-width="0.35"/>
+   <line x1="72" y1="60" x2="72" y2="64" stroke="rgba(255,255,255,0.18)" stroke-width="0.35"/>
+   <!-- Punto centro -->
+   <circle cx="50" cy="62" r="1.4" fill="rgba(255,255,255,0.22)"/>
+   <!-- Linea livella rotante -->
+   <line id="lvl-line" x1="30" y1="62" x2="70" y2="62" stroke="#52c47a" stroke-width="0.8" stroke-linecap="round"/>
+   <!-- Cerchio centro livella -->
+   <circle id="lvl-dot" cx="50" cy="62" r="1.8" fill="none" stroke="#52c47a" stroke-width="0.7"/>
+  </svg>
   <div class="cam-lvl-badge"><div class="clb-lbl">Livello</div><div class="clb-val" id="clb-val">SUPERIORE</div></div>
  </div>
  <div class="cam-bottom">
@@ -679,23 +705,97 @@ function toggleTeeth() {
   var tt=document.getElementById('teeth-tog'); if(tt) tt.classList.toggle('open',teethOpen);
   if (teethOpen) { buildFDIGrid(); renderSelectedTeeth(); }
 }
-function buildFDIGrid() { buildFDIRow('fdi-upper',FDI_UPPER); buildFDIRow('fdi-lower',FDI_LOWER); }
-function buildFDIRow(id,teeth) {
-  var cont=document.getElementById(id); if(!cont) return; cont.innerHTML='';
-  for(var i=0;i<teeth.length;i++) {
-    var num=teeth[i];
-    var hw=false; for(var ti=0;ti<toothRows.length;ti++){if(parseInt(toothRows[ti].num)===num){hw=true;break;}}
-    var ip=false; for(var pi=0;pi<ponticRows.length;pi++){if(ponticRows[pi]===num){ip=true;break;}}
-    var div=document.createElement('div');
-    div.className='fdi-tooth'+(hw?' selected':ip?' pontic':'');
-    div.dataset.num=num;
-    var tn=document.createElement('span'); tn.className='t-num'; tn.textContent=num;
-    var td=document.createElement('span'); td.className='t-dot';
-    div.appendChild(tn); div.appendChild(td);
-    (function(n){div.onclick=function(){toggleTooth(n);};})(num);
-    cont.appendChild(div);
+
+function buildFDIGrid() {
+  var svg = document.getElementById('fdi-svg');
+  if (!svg) return;
+  // Rimuovi solo i denti (non le linee statiche)
+  var toRemove = svg.querySelectorAll('.fdi-tooth-g');
+  for (var i = 0; i < toRemove.length; i++) svg.removeChild(toRemove[i]);
+
+  // Se primo build, aggiungi linee statiche
+  if (!svg.dataset.built) {
+    svg.dataset.built = '1';
+    var ns = 'http://www.w3.org/2000/svg';
+    // Linea orizzontale separazione arcate
+    var hl = document.createElementNS(ns,'line');
+    hl.setAttribute('x1','10');hl.setAttribute('y1','70');hl.setAttribute('x2','650');hl.setAttribute('y2','70');
+    hl.setAttribute('stroke','rgba(255,255,255,0.08)');hl.setAttribute('stroke-width','1');
+    svg.appendChild(hl);
+    // Linea mediana verticale oro tratteggiata
+    var vl = document.createElementNS(ns,'line');
+    vl.setAttribute('x1','330');vl.setAttribute('y1','6');vl.setAttribute('x2','330');vl.setAttribute('y2','134');
+    vl.setAttribute('stroke','rgba(201,168,76,0.4)');vl.setAttribute('stroke-width','1.5');vl.setAttribute('stroke-dasharray','6,4');
+    svg.appendChild(vl);
+    // Label SUPERIORE e INFERIORE
+    function addLbl(txt,x,y){var t=document.createElementNS(ns,'text');t.setAttribute('x',x);t.setAttribute('y',y);t.setAttribute('text-anchor','middle');t.setAttribute('font-size','9');t.setAttribute('fill','rgba(216,221,227,0.22)');t.setAttribute('font-family','Courier New,monospace');t.setAttribute('letter-spacing','2');t.textContent=txt;svg.appendChild(t);}
+    addLbl('SUPERIORE',330,13);
+    addLbl('INFERIORE',330,136);
   }
+
+  // Disegna denti
+  var R=18, step=41, offset=21, cx=330;
+  var yU=38, yL=102;
+  var rows = [
+    {teeth:[11,12,13,14,15,16,17,18], y:yU, side:'L'},
+    {teeth:[21,22,23,24,25,26,27,28], y:yU, side:'R'},
+    {teeth:[41,42,43,44,45,46,47,48], y:yL, side:'L'},
+    {teeth:[31,32,33,34,35,36,37,38], y:yL, side:'R'}
+  ];
+  rows.forEach(function(row){
+    row.teeth.forEach(function(num, i){
+      var x = row.side==='L' ? cx-offset-i*step : cx+offset+i*step;
+      var isSelected=false, isPontic=false, isImpl=false;
+      for(var ti=0;ti<toothRows.length;ti++){if(parseInt(toothRows[ti].num)===num){if(toothRows[ti].type==='impianto')isImpl=true;else isSelected=true;break;}}
+      for(var pi=0;pi<ponticRows.length;pi++){if(ponticRows[pi]===num){isPontic=true;break;}}
+      var ns2='http://www.w3.org/2000/svg';
+      var g=document.createElementNS(ns2,'g');
+      g.classList.add('fdi-tooth-g');
+      g.dataset.num=num;
+      var c=document.createElementNS(ns2,'circle');
+      c.setAttribute('cx',x);c.setAttribute('cy',row.y);c.setAttribute('r',R);
+      c.setAttribute('fill', isPontic?'rgba(101,163,255,0.15)':isImpl?'rgba(82,196,122,0.15)':isSelected?'rgba(201,168,76,0.2)':'#1a1e28');
+      c.setAttribute('stroke', isPontic?'#65a3ff':isImpl?'#52c47a':isSelected?'#C9A84C':'rgba(255,255,255,0.15)');
+      c.setAttribute('stroke-width', isSelected||isPontic||isImpl?'2':'1.5');
+      var t=document.createElementNS(ns2,'text');
+      t.setAttribute('x',x);t.setAttribute('y',row.y);
+      t.setAttribute('text-anchor','middle');t.setAttribute('dominant-baseline','central');
+      t.setAttribute('font-size','9');t.setAttribute('font-family','Courier New,monospace');t.setAttribute('font-weight','700');
+      t.setAttribute('fill', isPontic?'#65a3ff':isImpl?'#52c47a':isSelected?'#C9A84C':'rgba(216,221,227,0.45)');
+      t.setAttribute('pointer-events','none');
+      t.textContent=num;
+      g.appendChild(c);g.appendChild(t);
+      g.style.cursor='pointer';
+      (function(n){g.addEventListener('click',function(){cycleFDITooth(n);});})(num);
+      svg.appendChild(g);
+    });
+  });
 }
+
+function cycleFDITooth(num) {
+  // Ciclo: libero → selezionato → pontic → impianto → libero
+  var isSelected=false, isPontic=false, isImpl=false;
+  for(var ti=0;ti<toothRows.length;ti++){if(parseInt(toothRows[ti].num)===num){isSelected=toothRows[ti].type!=='impianto';isImpl=toothRows[ti].type==='impianto';break;}}
+  for(var pi=0;pi<ponticRows.length;pi++){if(ponticRows[pi]===num){isPontic=true;break;}}
+
+  if(!isSelected && !isPontic && !isImpl) {
+    // libero → selezionato
+    toothRows.push({id:Date.now(),num:num,type:''});
+  } else if(isSelected) {
+    // selezionato → pontic
+    for(var ti2=0;ti2<toothRows.length;ti2++){if(parseInt(toothRows[ti2].num)===num){toothRows.splice(ti2,1);break;}}
+    ponticRows.push(num);
+  } else if(isPontic) {
+    // pontic → impianto
+    for(var pi2=0;pi2<ponticRows.length;pi2++){if(ponticRows[pi2]===num){ponticRows.splice(pi2,1);break;}}
+    toothRows.push({id:Date.now(),num:num,type:'impianto'});
+  } else if(isImpl) {
+    // impianto → libero
+    for(var ti3=0;ti3<toothRows.length;ti3++){if(parseInt(toothRows[ti3].num)===num){toothRows.splice(ti3,1);break;}}
+  }
+  buildFDIGrid(); renderSelectedTeeth();
+}
+
 function toggleTooth(num) {
   var existing=-1;
   for(var i=0;i<toothRows.length;i++){if(parseInt(toothRows[i].num)===num){existing=i;break;}}
@@ -1053,7 +1153,7 @@ function buildThumbs(){
 function updateLvl(){for(var lv=0;lv<3;lv++){var e=document.getElementById('lv'+lv);if(!e)return;var cnt=lvlCount(curSet,lv);document.getElementById('lc'+lv).textContent=cnt+'/10';e.className='lvl-block'+(lv===curLevel?' active':'')+(cnt===10?' dnlv':'');}}
 function updateInstr(){var bi=document.getElementById('instr-badge');if(!bi)return;var li=curPh-(curLevel*10);var lv=LVL[curLevel];var sh=lv.shots[Math.min(li,lv.shots.length-1)];bi.textContent=sh.b;document.getElementById('instr-txt').textContent=sh.t;document.getElementById('instr-hint').textContent=sh.h;document.getElementById('dummy-guide').textContent=DUMMY[curLevel]||'';}
 function updateBadge(){var pb=document.getElementById('ph-badge');if(!pb)return;var rip=setCount(0);pb.textContent=totalPh()+' foto';pb.className='abadge'+(rip===30?' ok':'');}
-function updateScanLine(){var sl=document.getElementById('scan-line');if(!sl)return;var cv=document.getElementById('clb-val');var lv=LVL[curLevel]||LVL[0];sl.style.top=lv.scanPct+'%';if(cv)cv.textContent=lv.clb;}
+function updateScanLine(){var sl=document.getElementById('cam-scan-svg');var cv=document.getElementById('clb-val');var lv=LVL[curLevel]||LVL[0];if(cv)cv.textContent=lv.clb;if(!sl)return;var scanY=curLevel===0?40:curLevel===1?55:70;sl.setAttribute('y1',scanY);sl.setAttribute('y2',scanY);}
 
 // ── LAB SETS ──────────────────────────────────────────────────────────────
 function activateLab(setId){
@@ -1105,7 +1205,26 @@ function snapPhoto(){
   else{photos[curSet+'-'+curPh]=data;curPh++;if(curPh%10===0&&curPh<30)curLevel=Math.floor(curPh/10);if(curPh>=30){closeCam();showToast('Set completato!');}buildThumbs();updateLvl();updateInstr();updateBadge();updateCamGuide();updateScanLine();}
   showToast('Foto '+totalPh()+' acquisita');var sh2=document.getElementById('cam-sh');sh2.style.background='#aaa';setTimeout(function(){sh2.style.background='#fff';},90);
 }
-function initOrient(){window.addEventListener('deviceorientation',function(e){var g=e.gamma||0;var ind=document.getElementById('lvl-cam-i');if(!ind)return;var off=Math.max(-36,Math.min(36,g));ind.style.left='calc(50% + '+(off*0.5)+'px)';ind.style.background=Math.abs(g)<3?'#52c47a':Math.abs(g)<8?'#C9A84C':'#e05252';});}
+function initOrient(){
+  window.addEventListener('deviceorientation',function(e){
+    var g=e.gamma||0;
+    var lvlLine=document.getElementById('lvl-line');
+    var lvlDot=document.getElementById('lvl-dot');
+    if(!lvlLine||!lvlDot)return;
+    var angle=Math.max(-30,Math.min(30,g));
+    var rad=angle*Math.PI/180;
+    var cx=50,cy=62,len=20;
+    var dx=Math.cos(rad)*len;
+    var dy=Math.sin(rad)*len;
+    lvlLine.setAttribute('x1',(cx-dx).toFixed(2));
+    lvlLine.setAttribute('y1',(cy-dy).toFixed(2));
+    lvlLine.setAttribute('x2',(cx+dx).toFixed(2));
+    lvlLine.setAttribute('y2',(cy+dy).toFixed(2));
+    var color=Math.abs(angle)<3?'#52c47a':Math.abs(angle)<9?'#C9A84C':'#e05252';
+    lvlLine.setAttribute('stroke',color);
+    lvlDot.setAttribute('stroke',color);
+  });
+}
 
 // ── RECAP ─────────────────────────────────────────────────────────────────
 function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
