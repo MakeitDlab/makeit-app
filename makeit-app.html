@@ -1271,7 +1271,7 @@ function sendToLab() {
     if(ponticRows.length){for(var pi=0;pi<ponticRows.length;pi++)ta.push('Pontic '+ponticRows[pi]);}
     th=ta.join(', ');
   }
-  var rxId='RX-'+Math.floor(Math.random()*9000+1000);
+  var rxId='CAS-'+Math.floor(Math.random()*9000+1000);
   var caseData={
     id:rxId, paziente:cas.paz||'--', medico:cas.med||'--', consegna:cas.dat||'--',
     tipo:cas.tip||'--', arcata:cas.arc||'--', materiale:cas.mat||'--', colore:cas.vita||'--',
